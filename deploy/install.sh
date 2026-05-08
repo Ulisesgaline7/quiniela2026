@@ -123,11 +123,11 @@ php artisan view:cache
 
 # ── 14. Nginx config ──────────────────────────────────────────
 echo "▶ Configurando Nginx..."
-cat > /etc/nginx/sites-available/quiniela2026 << 'NGINX'
+cat > /etc/nginx/sites-available/quiniela2026 << NGINX
 server {
     listen 80;
     listen [::]:80;
-    server_name _;
+    server_name ${DOMAIN} www.${DOMAIN};
 
     root /var/www/quiniela2026/public;
     index index.php index.html;
@@ -147,7 +147,7 @@ server {
     error_page 404 /index.php;
 
     location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/phpPHP_VER-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php${PHP_VER}-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
         fastcgi_hide_header X-Powered-By;
@@ -165,9 +165,6 @@ server {
 }
 NGINX
 
-# Replace PHP version placeholder
-sed -i "s/PHP_VER/${PHP_VER}/g" /etc/nginx/sites-available/quiniela2026
-
 # Enable site
 ln -sf /etc/nginx/sites-available/quiniela2026 /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
@@ -182,13 +179,27 @@ systemctl restart php${PHP_VER}-fpm
 systemctl enable nginx
 systemctl start nginx
 
-# ── 16. Done ──────────────────────────────────────────────────
+# ── 16. SSL con Let's Encrypt ─────────────────────────────────
+if [[ "$DOMAIN" != "187.124.94.233" && "$DOMAIN" != "localhost" ]]; then
+    echo "▶ Instalando SSL (Let's Encrypt)..."
+    apt-get install -y -qq certbot python3-certbot-nginx
+    certbot --nginx \
+        -d "$DOMAIN" -d "www.$DOMAIN" \
+        --non-interactive --agree-tos \
+        -m "admin@${DOMAIN}" \
+        --redirect 2>/dev/null || echo "  ⚠ SSL omitido (DNS no apunta aún al servidor)"
+fi
+
+# ── 17. Done ──────────────────────────────────────────────────
 echo ""
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║  ✅  INSTALACIÓN COMPLETADA                          ║"
 echo "╠══════════════════════════════════════════════════════╣"
-echo "║  🌐  URL:    http://${DOMAIN}                        "
+echo "║  🌐  URL:    https://${DOMAIN}                       "
 echo "║  👤  Admin:  usuario 'admin' (sin contraseña)        ║"
 echo "║  📁  App:    ${APP_DIR}                              "
+echo "║                                                      ║"
+echo "║  Para actualizar en el futuro:                       ║"
+echo "║  bash ${APP_DIR}/deploy/update.sh                    "
 echo "╚══════════════════════════════════════════════════════╝"
 echo ""
