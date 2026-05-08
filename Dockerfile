@@ -1,42 +1,43 @@
+# ── Stage 1: Build assets ──────────────────────────────────────────
+FROM node:20-alpine AS node-builder
+WORKDIR /app
+COPY package.json package-lock.json vite.config.js ./
+COPY resources/css resources/css
+COPY resources/js resources/js
+RUN npm ci --prefer-offline && npm run build
+
+# ── Stage 2: PHP app ───────────────────────────────────────────────
 FROM php:8.3-cli-alpine
 
-# System deps
 RUN apk add --no-cache \
-    git curl libpng-dev libxml2-dev \
-    zip unzip nodejs npm sqlite sqlite-dev \
-    oniguruma-dev icu-dev
+    sqlite sqlite-dev libpng-dev libxml2-dev \
+    oniguruma-dev zip unzip curl
 
-# PHP extensions
 RUN docker-php-ext-install \
-    pdo pdo_sqlite mbstring xml ctype \
-    fileinfo bcmath intl
+    pdo pdo_sqlite mbstring xml ctype fileinfo bcmath
 
-# Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Install PHP deps (cached layer)
+# PHP deps (cached layer)
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# Install Node deps & build assets
-COPY package.json package-lock.json vite.config.js ./
-COPY resources/css resources/css
-COPY resources/js resources/js
-RUN npm ci && npm run build
+# Copy built assets from node stage
+COPY --from=node-builder /app/public/build public/build
 
-# Copy full app
+# Copy full application
 COPY . .
 
-# Post-install scripts
+# Post-install
 RUN composer run-script post-autoload-dump 2>/dev/null || true
 
-# Storage & permissions
+# Storage setup
 RUN mkdir -p storage/framework/{sessions,views,cache} \
     storage/logs bootstrap/cache database \
     && touch database/database.sqlite \
-    && chmod -R 775 storage bootstrap/cache database
+    && chmod -R 777 storage bootstrap/cache database
 
 EXPOSE 8080
 
@@ -46,4 +47,4 @@ CMD ["/bin/sh", "-c", "\
     php artisan config:cache && \
     php artisan route:cache && \
     php artisan view:cache && \
-    php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
+    php artisan serve --host=0.0.0.0 --port=8080"]
