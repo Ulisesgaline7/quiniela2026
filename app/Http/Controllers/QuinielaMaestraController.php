@@ -68,11 +68,14 @@ class QuinielaMaestraController extends Controller
             'top_scorer_team_id'  => 'required|exists:teams,id',
             'best_defense_id'     => 'required|exists:teams,id',
             'total_goals_guess'   => 'required|integer|min:50|max:400',
-            // Group picks: group_picks[group_id][1] = team_id, [2] = team_id
+            // Group picks: 1ro y 2do de cada grupo
             'group_picks'         => 'required|array',
             'group_picks.*'       => 'array|size:2',
             'group_picks.*.*'     => 'exists:teams,id',
-            // Phase picks derived from group picks
+            // 8 mejores terceros (grupos que clasifican su 3ro)
+            'best_thirds'         => 'required|array|size:8',
+            'best_thirds.*'       => 'exists:wc_groups,id',
+            // Fases avanzadas
             'semis'               => 'required|array|size:4',
             'semis.*'             => 'exists:teams,id',
             'final_teams'         => 'required|array|size:2',
@@ -98,7 +101,7 @@ class QuinielaMaestraController extends Controller
             ]);
             $quiniela->save();
 
-            // Save group picks
+            // Save group picks (1ro y 2do)
             \App\Models\QuinielaGroupPick::where('quiniela_id', $quiniela->id)->delete();
             foreach ($validated['group_picks'] as $groupId => $positions) {
                 foreach ($positions as $pos => $teamId) {
@@ -106,15 +109,25 @@ class QuinielaMaestraController extends Controller
                         'quiniela_id'  => $quiniela->id,
                         'wc_group_id'  => $groupId,
                         'team_id'      => $teamId,
-                        'position'     => $pos,
+                        'position'     => $pos,  // 1 or 2
                     ]);
                 }
             }
 
-            // Save phase picks (round_of_32 derived from group picks, semis & final manual)
+            // Save best thirds picks (position = 3, team_id = group_id for reference)
+            foreach ($validated['best_thirds'] as $groupId) {
+                \App\Models\QuinielaGroupPick::create([
+                    'quiniela_id'  => $quiniela->id,
+                    'wc_group_id'  => $groupId,
+                    'team_id'      => 0, // placeholder — actual 3rd place team unknown at pick time
+                    'position'     => 3,  // 3 = best third pick
+                ]);
+            }
+
+            // Save phase picks
             QuinielaPhasePickModel::where('quiniela_id', $quiniela->id)->delete();
 
-            // Round of 32: all 24 group picks (2 per group × 12 groups)
+            // Round of 32: all 24 group picks (1ro y 2do)
             foreach ($validated['group_picks'] as $groupId => $positions) {
                 foreach ($positions as $teamId) {
                     QuinielaPhasePickModel::create([

@@ -89,38 +89,60 @@
 <form method="POST" action="{{ route('quiniela.maestra.store') }}" id="maestra-form">
 @csrf
 
-{{-- ── GRUPOS: CLASIFICADOS ── --}}
+{{-- ── PASO 1: CLASIFICADOS DE GRUPOS (24 equipos: 1ro y 2do de cada grupo) ── --}}
 <div class="card">
   <div class="card-header">
-    <div class="card-icon ci-teal">🗂</div>
-    <div class="card-title">Clasificados por Grupo</div>
-    <div class="card-pts">24 <small>picks</small></div>
+    <div class="card-icon ci-teal">1️⃣</div>
+    <div class="card-title">Paso 1 · 1ro y 2do de cada Grupo</div>
+    <div class="card-pts">48 <small>pts</small></div>
   </div>
   <div class="card-body">
-    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px">
-      Selecciona los 2 equipos que avanzan de cada grupo. Estos picks alimentan automáticamente las fases siguientes.
-      <span class="pill pill-gold" style="margin-left:6px">1 pt c/u = 24 pts</span>
-    </p>
+
+    {{-- Explicación del formato --}}
+    <div style="background:rgba(0,184,169,.06);border:1px solid rgba(0,184,169,.2);border-radius:5px;padding:12px 16px;margin-bottom:20px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;color:var(--teal);margin-bottom:6px">📋 FORMATO MUNDIAL 2026</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8">
+        • <strong style="color:var(--white)">12 grupos × 4 equipos</strong> — clasifican 1ro y 2do de cada grupo = <strong style="color:var(--gold)">24 equipos</strong><br>
+        • Los <strong style="color:var(--white)">8 mejores terceros</strong> también clasifican = <strong style="color:var(--gold)">32 equipos en total</strong> para la Ronda de 32<br>
+        • <span class="pill pill-teal" style="font-size:11px">2 pts</span> por cada clasificado de grupo correcto ·
+          <span class="pill pill-gold" style="font-size:11px">3 pts</span> por cada mejor tercero correcto
+      </div>
+    </div>
+
     <div class="group-grid">
       @foreach($groups as $group)
-      <div class="group-card">
+      <div class="group-card" id="group-card-{{ $group->id }}">
         <div class="group-card-title">
-          <span>Grupo {{ $group->name }}</span>
-          <span style="font-size:10px;color:var(--muted)">2 clasificados</span>
+          <span>GRUPO {{ $group->name }}</span>
+          <span style="font-size:10px;color:var(--muted)">{{ $group->teams->count() }} equipos</span>
         </div>
-        @foreach([1,2] as $pos)
-        <div style="margin-bottom:8px">
-          <div style="font-size:9px;letter-spacing:2px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;margin-bottom:4px;text-transform:uppercase">
-            {{ $pos === 1 ? '🥇 1er lugar' : '🥈 2do lugar' }}
+
+        {{-- Teams in group for reference --}}
+        <div style="margin-bottom:10px;padding:6px 8px;background:rgba(0,0,0,.2);border-radius:3px">
+          @foreach($group->teams->sortBy('fifa_ranking') as $team)
+          <div style="font-size:11px;color:var(--muted);padding:1px 0;display:flex;align-items:center;gap:5px">
+            <span>{{ $team->flag }}</span>
+            <span style="color:var(--white)">{{ $team->name }}</span>
+            <span style="margin-left:auto;font-size:10px">#{{ $team->fifa_ranking }}</span>
           </div>
-          <div class="sel-wrap">
-            <select name="group_picks[{{ $group->id }}][{{ $pos }}]" required onchange="updateProgress();syncGroupPicks()">
-              <option value="">— Equipo —</option>
-              @foreach($group->teams as $team)
+          @endforeach
+        </div>
+
+        @foreach([1 => ['🥇','1er lugar','gold'], 2 => ['🥈','2do lugar','muted']] as $pos => [$medal,$posLabel,$color])
+        <div style="margin-bottom:8px">
+          <div style="font-size:9px;letter-spacing:2px;color:var(--{{ $color }});font-family:'Barlow Condensed',sans-serif;font-weight:700;margin-bottom:4px;text-transform:uppercase">
+            {{ $medal }} {{ $posLabel }}
+          </div>
+          <div class="sel-wrap" style="min-width:0">
+            <select name="group_picks[{{ $group->id }}][{{ $pos }}]" required
+              onchange="updateProgress();syncGroupPicks()"
+              data-group="{{ $group->name }}" data-pos="{{ $pos }}">
+              <option value="">— Selecciona —</option>
+              @foreach($group->teams->sortBy('fifa_ranking') as $team)
               <option value="{{ $team->id }}"
                 {{ ($groupPicks[$group->id][$pos] ?? null) == $team->id ? 'selected':'' }}
                 data-flag="{{ $team->flag }}" data-name="{{ $team->name }}">
-                {{ $team->flag }} {{ $team->name }} (FIFA #{{ $team->fifa_ranking }})
+                {{ $team->flag }} {{ $team->name }}
               </option>
               @endforeach
             </select>
@@ -130,6 +152,58 @@
       </div>
       @endforeach
     </div>
+  </div>
+</div>
+
+{{-- ── PASO 2: 8 MEJORES TERCEROS ── --}}
+<div class="card">
+  <div class="card-header">
+    <div class="card-icon ci-purple">2️⃣</div>
+    <div class="card-title">Paso 2 · 8 Mejores Terceros</div>
+    <div class="card-pts">24 <small>pts</small></div>
+  </div>
+  <div class="card-body">
+
+    <div style="background:rgba(107,63,160,.08);border:1px solid rgba(107,63,160,.25);border-radius:5px;padding:12px 16px;margin-bottom:20px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;color:#a07de0;margin-bottom:6px">🏅 LOS 8 MEJORES TERCEROS</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8">
+        De los 12 terceros lugares, los <strong style="color:var(--white)">8 con mejor rendimiento</strong> (puntos, diferencia de goles, goles marcados) también clasifican a la Ronda de 32.<br>
+        Selecciona los 8 grupos de los que crees que el tercer lugar clasificará.
+        <span class="pill pill-purple" style="font-size:11px;margin-left:4px">3 pts c/u = 24 pts</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px" id="terceros-grid">
+      @php
+        $savedTerceros = [];
+        if($quiniela) {
+          $savedTerceros = \App\Models\QuinielaGroupPick::where('quiniela_id', $quiniela->id)
+            ->where('position', 3)->pluck('team_id')->toArray();
+        }
+      @endphp
+      @for($i = 0; $i < 8; $i++)
+      <div style="background:var(--card2);border:1px solid rgba(107,63,160,.25);border-radius:4px;padding:8px">
+        <div style="font-size:9px;letter-spacing:2px;color:#a07de0;font-family:'Barlow Condensed',sans-serif;font-weight:700;margin-bottom:6px;text-transform:uppercase">
+          3ro #{{ $i+1 }}
+        </div>
+        <div class="sel-wrap" style="min-width:0">
+          <select name="best_thirds[]" class="tercero-select" onchange="updateProgress()">
+            <option value="">— Grupo —</option>
+            @foreach($groups as $group)
+            <option value="{{ $group->id }}"
+              {{ isset($savedTerceros[$i]) && $savedTerceros[$i] == $group->id ? 'selected':'' }}>
+              Grupo {{ $group->name }}
+            </option>
+            @endforeach
+          </select>
+        </div>
+      </div>
+      @endfor
+    </div>
+
+    <p style="font-size:11px;color:var(--muted);margin-top:12px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;text-align:center">
+      💡 Históricamente clasifican los terceros de los grupos más fuertes. En 2022 clasificaron los mejores 3ros de grupos B, C, D, E, F, G, H.
+    </p>
   </div>
 </div>
 
@@ -327,16 +401,36 @@
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Puntos Totales en Juego</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:56px;line-height:1;color:var(--gold)">220+ <span style="font-size:18px;color:var(--muted)">pts</span></div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:56px;line-height:1;color:var(--gold)">300+ <span style="font-size:18px;color:var(--muted)">pts</span></div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <span class="pill pill-gold">Grupos 24</span>
-        <span class="pill pill-gold">Podio 45</span>
-        <span class="pill pill-coral">Premios 60</span>
-        <span class="pill pill-teal">Stats 35</span>
-        <span class="pill pill-purple">Semis 20</span>
-        <span class="pill pill-gold">Final 28</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span class="pill pill-teal">1ros/2dos 48pts</span>
+        <span class="pill pill-purple">Mejores 3ros 24pts</span>
+        <span class="pill pill-purple">Semis 32pts</span>
+        <span class="pill pill-gold">Final 28pts</span>
+        <span class="pill pill-gold">Podio 40pts</span>
+        <span class="pill pill-coral">Premios 49pts</span>
       </div>
+    </div>
+    <div style="margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px">
+      @foreach([
+        ['🥇 1ro de grupo','2 pts × 12 = 24 pts','teal'],
+        ['🥈 2do de grupo','2 pts × 12 = 24 pts','teal'],
+        ['🏅 Mejor 3ro','3 pts × 8 = 24 pts','purple'],
+        ['⚡ Semifinalistas','8 pts × 4 = 32 pts','purple'],
+        ['🏟 Finalistas','14 pts × 2 = 28 pts','gold'],
+        ['🏆 Campeón','25 pts','gold'],
+        ['🥈 Subcampeón','15 pts','gold'],
+        ['👟 Bota de Oro','15 pts','coral'],
+        ['🧤 Guante de Oro','10 pts','coral'],
+        ['🌟 Mejor Joven','12 pts','coral'],
+        ['😱 País Sorpresa','12 pts','coral'],
+      ] as [$label,$pts,$color])
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:4px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:var(--white)">{{ $label }}</span>
+        <span class="pill pill-{{ $color }}" style="font-size:11px">{{ $pts }}</span>
+      </div>
+      @endforeach
     </div>
   </div>
 </div>
@@ -365,20 +459,30 @@ function updateProgress() {
   document.getElementById('prog-txt').textContent = filled + ' / ' + inputs.length + ' completados';
 }
 
-// When group picks change, update semis/final selects to only show picked teams
+// When group picks (1ro/2do) change → update semis/final selects
 function syncGroupPicks() {
   const pickedTeams = [];
+  const seen = new Set();
+
   document.querySelectorAll('[name^="group_picks"]').forEach(sel => {
-    if (sel.value) {
+    if (sel.value && !seen.has(sel.value)) {
+      seen.add(sel.value);
       const opt = sel.options[sel.selectedIndex];
-      pickedTeams.push({ id: sel.value, flag: opt.dataset.flag || '', name: opt.dataset.name || opt.text });
+      pickedTeams.push({
+        id:   sel.value,
+        flag: opt.dataset.flag || '',
+        name: opt.dataset.name || opt.text.split('(')[0].trim()
+      });
     }
   });
 
-  // Update semis selects
+  // Sort by name for readability
+  pickedTeams.sort((a,b) => a.name.localeCompare(b.name));
+
+  // Update semis and final selects
   document.querySelectorAll('.semis-select, .final-select').forEach(sel => {
     const current = sel.value;
-    sel.innerHTML = '<option value="">— Equipo —</option>';
+    sel.innerHTML = '<option value="">— Equipo clasificado —</option>';
     pickedTeams.forEach(t => {
       const opt = document.createElement('option');
       opt.value = t.id;
@@ -388,6 +492,19 @@ function syncGroupPicks() {
     });
   });
 }
+
+// Prevent duplicate picks in same group (1ro ≠ 2do)
+document.addEventListener('change', function(e) {
+  if (!e.target.matches('[name^="group_picks"]')) return;
+  const groupId = e.target.name.match(/\[(\d+)\]/)?.[1];
+  if (!groupId) return;
+
+  const selects = document.querySelectorAll(`[name^="group_picks[${groupId}]"]`);
+  if (selects.length === 2 && selects[0].value && selects[1].value && selects[0].value === selects[1].value) {
+    e.target.value = '';
+    alert('⚠️ No puedes elegir el mismo equipo para 1ro y 2do del mismo grupo.');
+  }
+});
 
 updateProgress();
 </script>
