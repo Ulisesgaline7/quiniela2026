@@ -1,8 +1,10 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+// Sync match results from WC2026 API every 5 minutes during tournament
+Schedule::command('matches:sync')
+    ->everyFiveMinutes()
+    ->between('09:00', '23:59')  // Tegucigalpa time
+    ->withoutOverlapping()
+    ->runInBackground();

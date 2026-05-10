@@ -123,7 +123,7 @@
 
     {{-- BONOS --}}
     <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;color:var(--teal);margin-bottom:8px;text-transform:uppercase">Puntos Bono</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
       @foreach([
         ['predict_red_card','🟥 Tarjeta Roja',2],
         ['predict_both_score','⚽⚽ Ambos Anotan',2],
@@ -149,6 +149,26 @@
         <span class="bonus-pts">+4</span>
       </div>
       @endif
+    </div>
+
+    {{-- PRIMER GOLEADOR --}}
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--card2);border-radius:4px;border:1px solid var(--border);margin-bottom:12px">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--white)">⚽ Primer Goleador</div>
+        <div style="font-size:11px;color:var(--muted)">¿Qué equipo anota primero?</div>
+      </div>
+      <div class="sel-wrap" style="min-width:140px">
+        <select name="first_scorer_team_id">
+          <option value="">— País —</option>
+          <option value="{{ $match->homeTeam->id }}" {{ $pred?->first_scorer_team_id == $match->homeTeam->id ? 'selected':'' }}>
+            {{ $match->homeTeam->flag }} {{ $match->homeTeam->name }}
+          </option>
+          <option value="{{ $match->awayTeam->id }}" {{ $pred?->first_scorer_team_id == $match->awayTeam->id ? 'selected':'' }}>
+            {{ $match->awayTeam->flag }} {{ $match->awayTeam->name }}
+          </option>
+        </select>
+      </div>
+      <span class="bonus-pts">+4</span>
     </div>
 
     @if($pred)
@@ -198,11 +218,41 @@
   </div>
 </div>
 @empty
+@if(in_array($phase, ['round_of_32','round_of_16','quarters','semis','third_place','final']))
+<div class="card">
+  <div class="card-body" style="text-align:center;padding:40px 24px">
+    <div style="font-size:48px;margin-bottom:12px">⏳</div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:2px;color:var(--white);margin-bottom:8px;text-transform:uppercase">
+      Partidos Pendientes
+    </div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.7;max-width:400px;margin:0 auto">
+      Los partidos de <strong style="color:var(--gold)">{{ $phases[$phase] }}</strong> se agregarán automáticamente cuando se conozcan los clasificados.<br><br>
+      @if($phase === 'round_of_32')
+        Disponibles a partir del <strong style="color:var(--teal)">28 de junio</strong> cuando termine la fase de grupos.
+      @elseif($phase === 'round_of_16')
+        Disponibles a partir del <strong style="color:var(--teal)">5 de julio</strong>.
+      @elseif($phase === 'quarters')
+        Disponibles a partir del <strong style="color:var(--teal)">9 de julio</strong>.
+      @elseif($phase === 'semis')
+        Disponibles a partir del <strong style="color:var(--teal)">14 de julio</strong>.
+      @else
+        Disponibles próximamente.
+      @endif
+    </div>
+    <div style="margin-top:16px">
+      <a href="{{ route('quiniela.partidos',['phase'=>'groups']) }}" class="btn btn-outline btn-sm">
+        ← Ver Fase de Grupos
+      </a>
+    </div>
+  </div>
+</div>
+@else
 <div class="card">
   <div class="card-body" style="text-align:center;padding:40px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px">
     No hay partidos disponibles en esta fase todavía.
   </div>
 </div>
+@endif
 @endforelse
 
 @endsection

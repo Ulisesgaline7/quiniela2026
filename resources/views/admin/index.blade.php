@@ -78,7 +78,71 @@
   </div>
 </div>
 
-{{-- ── RESULTADOS DE PARTIDOS ── --}}
+{{-- ── CREAR PARTIDO ELIMINATORIO ── --}}
+<div class="card" style="border-color:rgba(0,204,170,.2)">
+  <div class="card-header">
+    <div class="card-icon ci-teal">➕</div>
+    <div class="card-title">Crear Partido Eliminatorio</div>
+  </div>
+  <div class="card-body">
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px">
+      Agrega partidos de Ronda de 32, Octavos, Cuartos, Semis y Final cuando se conozcan los clasificados. Los pronósticos abren automáticamente y cierran 1 hora antes del kickoff.
+    </p>
+    <form method="POST" action="{{ route('admin.match.create') }}">
+    @csrf
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div>
+        <label style="font-size:10px;letter-spacing:2px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;display:block;margin-bottom:5px;text-transform:uppercase">🏠 Equipo Local</label>
+        <div class="sel-wrap">
+          <select name="home_team_id" required>
+            <option value="">— Selecciona —</option>
+            @foreach($allTeams as $team)
+            <option value="{{ $team->id }}">{{ $team->flag }} {{ $team->name }}</option>
+            @endforeach
+          </select>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:10px;letter-spacing:2px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;display:block;margin-bottom:5px;text-transform:uppercase">✈️ Equipo Visitante</label>
+        <div class="sel-wrap">
+          <select name="away_team_id" required>
+            <option value="">— Selecciona —</option>
+            @foreach($allTeams as $team)
+            <option value="{{ $team->id }}">{{ $team->flag }} {{ $team->name }}</option>
+            @endforeach
+          </select>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:10px;letter-spacing:2px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;display:block;margin-bottom:5px;text-transform:uppercase">🏟 Fase</label>
+        <div class="sel-wrap">
+          <select name="phase" required>
+            <option value="round_of_32">Ronda de 32</option>
+            <option value="round_of_16">Octavos de Final</option>
+            <option value="quarters">Cuartos de Final</option>
+            <option value="semis">Semifinales</option>
+            <option value="third_place">Tercer Lugar</option>
+            <option value="final">Final</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:10px;letter-spacing:2px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;display:block;margin-bottom:5px;text-transform:uppercase">📅 Fecha y Hora (HN)</label>
+        <input type="datetime-local" name="kickoff_at" required style="width:100%">
+      </div>
+      <div>
+        <label style="font-size:10px;letter-spacing:2px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;display:block;margin-bottom:5px;text-transform:uppercase">🏟 Estadio</label>
+        <input type="text" name="venue" placeholder="MetLife Stadium" style="width:100%">
+      </div>
+      <div>
+        <label style="font-size:10px;letter-spacing:2px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;display:block;margin-bottom:5px;text-transform:uppercase">📍 Ciudad</label>
+        <input type="text" name="city" placeholder="Nueva York" style="width:100%">
+      </div>
+    </div>
+    <button type="submit" class="btn btn-teal btn-sm">➕ Crear Partido</button>
+    </form>
+  </div>
+</div>
 <div class="card">
   <div class="card-header">
     <div class="card-icon ci-coral">⚽</div>

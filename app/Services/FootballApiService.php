@@ -6,126 +6,99 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * WC2026 API Service — https://api.wc2026api.com
+ * Endpoints:
+ *   GET /matches          — all 104 matches with live scores
+ *   GET /matches/{id}     — single match
+ *   GET /groups           — 12 groups with teams
+ *
+ * Key: wc26_KdsoHimfzeLmwRxQsv3LzZ
+ * Rate limit: 100 req/day (free tier)
+ */
 class FootballApiService
 {
-    private string $baseUrl = 'https://api.wc2026api.com/v1';
-    private ?string $apiKey;
-
-    public function __construct()
-    {
-        $this->apiKey = config('services.wc2026.key');
-    }
+    private const BASE = 'https://api.wc2026api.com';
+    private const KEY  = 'wc26_KdsoHimfzeLmwRxQsv3LzZ';
 
     private function headers(): array
     {
         return [
-            'Authorization' => 'Bearer ' . $this->apiKey,
+            'Authorization' => 'Bearer ' . self::KEY,
             'Accept'        => 'application/json',
         ];
     }
 
-    /**
-     * Get all matches with live scores
-     */
-    public function getMatches(string $round = null): array
+    private function get(string $path, int $ttl = 60): ?array
     {
-        $cacheKey = 'wc2026_matches_' . ($round ?? 'all');
-        $ttl = 60; // 1 minute cache for live data
+        $cacheKey = 'wc2026api_' . md5($path);
 
-        return Cache::remember($cacheKey, $ttl, function () use ($round) {
-            try {
-                $params = $round ? ['round' => $round] : [];
-                $response = Http::timeout(10)
-                    ->withHeaders($this->headers())
-                    ->get("{$this->baseUrl}/matches", $params);
-
-                if ($response->successful()) {
-                    return $response->json('data', []);
-                }
-            } catch (\Exception $e) {
-                Log::warning('WC2026 API error: ' . $e->getMessage());
-            }
-            return [];
-        });
-    }
-
-    /**
-     * Get group standings
-     */
-    public function getStandings(): array
-    {
-        return Cache::remember('wc2026_standings', 120, function () {
+        return Cache::remember($cacheKey, $ttl, function () use ($path) {
             try {
                 $response = Http::timeout(10)
                     ->withHeaders($this->headers())
-                    ->get("{$this->baseUrl}/standings");
+                    ->get(self::BASE . $path);
 
                 if ($response->successful()) {
-                    return $response->json('data', []);
+                    return $response->json();
                 }
+                Log::warning("WC2026 API [{$path}]: HTTP " . $response->status());
             } catch (\Exception $e) {
-                Log::warning('WC2026 API standings error: ' . $e->getMessage());
-            }
-            return [];
-        });
-    }
-
-    /**
-     * Get single match details with stats
-     */
-    public function getMatch(string $matchId): ?array
-    {
-        return Cache::remember("wc2026_match_{$matchId}", 60, function () use ($matchId) {
-            try {
-                $response = Http::timeout(10)
-                    ->withHeaders($this->headers())
-                    ->get("{$this->baseUrl}/matches/{$matchId}");
-
-                if ($response->successful()) {
-                    return $response->json('data');
-                }
-            } catch (\Exception $e) {
-                Log::warning("WC2026 API match {$matchId} error: " . $e->getMessage());
+                Log::warning("WC2026 API [{$path}]: " . $e->getMessage());
             }
             return null;
         });
     }
 
-    /**
-     * Get team stats/history for head-to-head comparison
-     * Uses cached static data since API may not have historical H2H
-     */
-    public function getTeamComparison(string $team1Code, string $team2Code): array
+    // ── All matches ───────────────────────────────────────────────────
+    public function getAllMatches(): array
     {
-        $cacheKey = "wc2026_h2h_{$team1Code}_{$team2Code}";
-
-        return Cache::remember($cacheKey, 3600, function () use ($team1Code, $team2Code) {
-            try {
-                $response = Http::timeout(10)
-                    ->withHeaders($this->headers())
-                    ->get("{$this->baseUrl}/teams/{$team1Code}/vs/{$team2Code}");
-
-                if ($response->successful()) {
-                    return $response->json('data', []);
-                }
-            } catch (\Exception $e) {
-                Log::warning("WC2026 H2H error: " . $e->getMessage());
-            }
-
-            // Fallback: return static comparison data
-            return $this->staticTeamData($team1Code, $team2Code);
-        });
+        return $this->get('/matches', 120) ?? [];
     }
 
-    /**
-     * Static fallback team data for comparison when API unavailable
-     */
-    private function staticTeamData(string $t1, string $t2): array
+    // ── Single match ──────────────────────────────────────────────────
+    public function getMatch(int $apiId): ?array
+    {
+        return $this->get("/matches/{$apiId}", 60);
+    }
+
+    // ── Groups ────────────────────────────────────────────────────────
+    public function getGroups(): array
+    {
+        return $this->get('/groups', 3600) ?? [];
+    }
+
+    // ── Live matches (status = live) ──────────────────────────────────
+    public function getLiveMatches(): array
+    {
+        // Bust cache for live data
+        Cache::forget('wc2026api_' . md5('/matches'));
+        $all = $this->getAllMatches();
+        return array_filter($all, fn($m) => ($m['status'] ?? '') === 'live');
+    }
+
+    // ── Map API round to our phase ────────────────────────────────────
+    public static function roundToPhase(string $round): string
+    {
+        return match(strtolower($round)) {
+            'group'  => 'groups',
+            'r32'    => 'round_of_32',
+            'r16'    => 'round_of_16',
+            'qf'     => 'quarters',
+            'sf'     => 'semis',
+            '3rd'    => 'third_place',
+            'final'  => 'final',
+            default  => 'groups',
+        };
+    }
+
+    // ── Team comparison (static data — API doesn't have H2H) ─────────
+    public function getTeamComparison(string $team1Code, string $team2Code): array
     {
         $stats = $this->teamStats();
         return [
-            'team1' => $stats[$t1] ?? $this->defaultStats($t1),
-            'team2' => $stats[$t2] ?? $this->defaultStats($t2),
+            'team1'  => $stats[strtoupper($team1Code)] ?? $this->defaultStats($team1Code),
+            'team2'  => $stats[strtoupper($team2Code)] ?? $this->defaultStats($team2Code),
             'source' => 'static',
         ];
     }
@@ -136,6 +109,7 @@ class FootballApiService
             'code' => $code, 'world_cups' => 0, 'best_result' => 'Grupos',
             'titles' => 0, 'avg_goals_scored' => 1.2, 'avg_goals_conceded' => 1.1,
             'win_rate' => 33, 'form' => ['W','D','L','D','L'],
+            'star_player' => '—', 'fifa_rank' => 50,
         ];
     }
 
@@ -164,6 +138,32 @@ class FootballApiService
             'AUS' => ['code'=>'AUS','world_cups'=>6,'best_result'=>'4to lugar','titles'=>0,'avg_goals_scored'=>1.1,'avg_goals_conceded'=>1.1,'win_rate'=>38,'form'=>['D','W','L','D','W'],'star_player'=>'Mat Ryan','fifa_rank'=>24],
             'SUI' => ['code'=>'SUI','world_cups'=>12,'best_result'=>'Cuartos','titles'=>0,'avg_goals_scored'=>1.3,'avg_goals_conceded'=>0.8,'win_rate'=>46,'form'=>['W','D','W','D','W'],'star_player'=>'Granit Xhaka','fifa_rank'=>19],
             'ECU' => ['code'=>'ECU','world_cups'=>4,'best_result'=>'Octavos','titles'=>0,'avg_goals_scored'=>1.2,'avg_goals_conceded'=>1.0,'win_rate'=>40,'form'=>['D','W','D','L','W'],'star_player'=>'Moisés Caicedo','fifa_rank'=>44],
+            'RSA' => ['code'=>'RSA','world_cups'=>3,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>0.9,'avg_goals_conceded'=>1.2,'win_rate'=>30,'form'=>['L','D','W','L','D'],'star_player'=>'Percy Tau','fifa_rank'=>67],
+            'CAN' => ['code'=>'CAN','world_cups'=>2,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>1.1,'avg_goals_conceded'=>1.1,'win_rate'=>38,'form'=>['W','D','W','D','L'],'star_player'=>'Alphonso Davies','fifa_rank'=>43],
+            'PAR' => ['code'=>'PAR','world_cups'=>9,'best_result'=>'Cuartos','titles'=>0,'avg_goals_scored'=>1.0,'avg_goals_conceded'=>1.0,'win_rate'=>35,'form'=>['D','L','W','D','L'],'star_player'=>'Miguel Almirón','fifa_rank'=>55],
+            'TUR' => ['code'=>'TUR','world_cups'=>3,'best_result'=>'3er lugar','titles'=>0,'avg_goals_scored'=>1.4,'avg_goals_conceded'=>1.1,'win_rate'=>44,'form'=>['W','W','D','W','L'],'star_player'=>'Arda Güler','fifa_rank'=>26],
+            'CZE' => ['code'=>'CZE','world_cups'=>9,'best_result'=>'Subcampeón','titles'=>0,'avg_goals_scored'=>1.2,'avg_goals_conceded'=>1.0,'win_rate'=>40,'form'=>['W','D','L','W','D'],'star_player'=>'Tomáš Souček','fifa_rank'=>40],
+            'QAT' => ['code'=>'QAT','world_cups'=>2,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>0.8,'avg_goals_conceded'=>1.5,'win_rate'=>25,'form'=>['L','L','D','L','W'],'star_player'=>'Akram Afif','fifa_rank'=>37],
+            'SCO' => ['code'=>'SCO','world_cups'=>8,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>1.1,'avg_goals_conceded'=>1.1,'win_rate'=>38,'form'=>['D','W','L','D','W'],'star_player'=>'Scott McTominay','fifa_rank'=>39],
+            'HAI' => ['code'=>'HAI','world_cups'=>1,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>0.7,'avg_goals_conceded'=>1.4,'win_rate'=>20,'form'=>['L','D','L','W','L'],'star_player'=>'Frantzdy Pierrot','fifa_rank'=>83],
+            'IRQ' => ['code'=>'IRQ','world_cups'=>2,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>1.0,'avg_goals_conceded'=>1.2,'win_rate'=>32,'form'=>['W','D','L','W','D'],'star_player'=>'Aymen Hussein','fifa_rank'=>58],
+            'ALG' => ['code'=>'ALG','world_cups'=>4,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>1.1,'avg_goals_conceded'=>0.9,'win_rate'=>40,'form'=>['W','D','W','L','D'],'star_player'=>'Riyad Mahrez','fifa_rank'=>35],
+            'AUT' => ['code'=>'AUT','world_cups'=>7,'best_result'=>'3er lugar','titles'=>0,'avg_goals_scored'=>1.3,'avg_goals_conceded'=>1.0,'win_rate'=>42,'form'=>['W','W','D','W','L'],'star_player'=>'Marcel Sabitzer','fifa_rank'=>27],
+            'JOR' => ['code'=>'JOR','world_cups'=>1,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>0.8,'avg_goals_conceded'=>1.3,'win_rate'=>28,'form'=>['D','L','W','D','L'],'star_player'=>'Yazan Al-Naimat','fifa_rank'=>71],
+            'COD' => ['code'=>'COD','world_cups'=>2,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>0.9,'avg_goals_conceded'=>1.1,'win_rate'=>30,'form'=>['W','L','D','L','W'],'star_player'=>'Yoane Wissa','fifa_rank'=>52],
+            'UZB' => ['code'=>'UZB','world_cups'=>1,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>0.8,'avg_goals_conceded'=>1.2,'win_rate'=>28,'form'=>['D','W','L','D','L'],'star_player'=>'Eldor Shomurodov','fifa_rank'=>63],
+            'GHA' => ['code'=>'GHA','world_cups'=>4,'best_result'=>'Cuartos','titles'=>0,'avg_goals_scored'=>1.1,'avg_goals_conceded'=>1.1,'win_rate'=>36,'form'=>['L','W','D','L','W'],'star_player'=>'Mohammed Kudus','fifa_rank'=>74],
+            'PAN' => ['code'=>'PAN','world_cups'=>2,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>0.7,'avg_goals_conceded'=>1.3,'win_rate'=>25,'form'=>['L','D','L','W','D'],'star_player'=>'Rolando Blackburn','fifa_rank'=>49],
+            'CPV' => ['code'=>'CPV','world_cups'=>1,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>0.8,'avg_goals_conceded'=>1.2,'win_rate'=>28,'form'=>['W','D','L','D','L'],'star_player'=>'Garry Rodrigues','fifa_rank'=>69],
+            'KSA' => ['code'=>'KSA','world_cups'=>6,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>1.0,'avg_goals_conceded'=>1.2,'win_rate'=>32,'form'=>['L','W','D','L','W'],'star_player'=>'Salem Al-Dawsari','fifa_rank'=>56],
+            'NZL' => ['code'=>'NZL','world_cups'=>2,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>0.7,'avg_goals_conceded'=>1.4,'win_rate'=>22,'form'=>['L','L','D','W','L'],'star_player'=>'Chris Wood','fifa_rank'=>85],
+            'EGY' => ['code'=>'EGY','world_cups'=>3,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>1.0,'avg_goals_conceded'=>1.0,'win_rate'=>35,'form'=>['W','D','W','L','D'],'star_player'=>'Mohamed Salah','fifa_rank'=>34],
+            'IRN' => ['code'=>'IRN','world_cups'=>6,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>1.0,'avg_goals_conceded'=>1.1,'win_rate'=>33,'form'=>['D','W','L','D','W'],'star_player'=>'Mehdi Taremi','fifa_rank'=>22],
+            'TUN' => ['code'=>'TUN','world_cups'=>6,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>0.9,'avg_goals_conceded'=>1.0,'win_rate'=>30,'form'=>['D','L','W','D','L'],'star_player'=>'Wahbi Khazri','fifa_rank'=>30],
+            'SWE' => ['code'=>'SWE','world_cups'=>12,'best_result'=>'3er lugar','titles'=>0,'avg_goals_scored'=>1.4,'avg_goals_conceded'=>0.9,'win_rate'=>48,'form'=>['W','W','D','W','D'],'star_player'=>'Viktor Gyökeres','fifa_rank'=>25],
+            'BIH' => ['code'=>'BIH','world_cups'=>2,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>1.1,'avg_goals_conceded'=>1.2,'win_rate'=>35,'form'=>['W','D','L','W','D'],'star_player'=>'Edin Džeko','fifa_rank'=>65],
+            'CUW' => ['code'=>'CUW','world_cups'=>1,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>0.6,'avg_goals_conceded'=>1.5,'win_rate'=>18,'form'=>['L','D','L','L','W'],'star_player'=>'Cuco Martina','fifa_rank'=>82],
+            'CIV' => ['code'=>'CIV','world_cups'=>3,'best_result'=>'Grupos','titles'=>0,'avg_goals_scored'=>1.1,'avg_goals_conceded'=>1.1,'win_rate'=>36,'form'=>['W','D','L','W','D'],'star_player'=>'Sébastien Haller','fifa_rank'=>48],
         ];
     }
 }

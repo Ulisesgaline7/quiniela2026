@@ -17,12 +17,13 @@ class AdminController extends Controller
 {
     public function index()
     {
-        $matches = WorldMatch::with(['homeTeam','awayTeam'])
+        $matches  = WorldMatch::with(['homeTeam','awayTeam'])
             ->orderBy('kickoff_at')->get();
-        $users   = User::orderBy('name')->get();
-        $groups  = WcGroup::with('teams')->orderBy('name')->get();
+        $users    = User::orderBy('name')->get();
+        $groups   = WcGroup::with('teams')->orderBy('name')->get();
+        $allTeams = Team::orderBy('name')->get();
 
-        return view('admin.index', compact('matches','users','groups'));
+        return view('admin.index', compact('matches','users','groups','allTeams'));
     }
 
     // ── User management ──────────────────────────────────────────────
@@ -239,6 +240,34 @@ class AdminController extends Controller
         if ($home > $away) return 'home';
         if ($home < $away) return 'away';
         return 'draw';
+    }
+
+    public function createMatch(Request $request)
+    {
+        $validated = $request->validate([
+            'home_team_id' => 'required|exists:teams,id',
+            'away_team_id' => 'required|exists:teams,id|different:home_team_id',
+            'phase'        => 'required|in:round_of_32,round_of_16,quarters,semis,third_place,final',
+            'kickoff_at'   => 'required|date',
+            'venue'        => 'nullable|string|max:100',
+            'city'         => 'nullable|string|max:100',
+        ]);
+
+        $kickoff = \Carbon\Carbon::parse($validated['kickoff_at'], 'America/Tegucigalpa');
+
+        \App\Models\WorldMatch::create([
+            'home_team_id' => $validated['home_team_id'],
+            'away_team_id' => $validated['away_team_id'],
+            'phase'        => $validated['phase'],
+            'kickoff_at'   => $kickoff,
+            'closes_at'    => $kickoff->copy()->subHour(),
+            'venue'        => $validated['venue'] ?? null,
+            'city'         => $validated['city'] ?? null,
+            'is_open'      => true,
+            'status'       => 'scheduled',
+        ]);
+
+        return back()->with('success', 'Partido creado ✓ Los pronósticos abren automáticamente.');
     }
 
     // ── Resolve Special Event ─────────────────────────────────────────

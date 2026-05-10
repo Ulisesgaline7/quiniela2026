@@ -39,6 +39,7 @@ Route::middleware(['auth','admin'])->prefix('admin')->name('admin.')->group(func
     Route::post('/users',                    [AdminController::class, 'createUser'])->name('users.create');
     Route::delete('/users/{user}',           [AdminController::class, 'deleteUser'])->name('users.delete');
     Route::post('/match/{match}/score',      [AdminController::class, 'scoreMatch'])->name('match.score');
+    Route::post('/match/create',             [AdminController::class, 'createMatch'])->name('match.create');
     Route::post('/maestra/score',            [AdminController::class, 'scoreMaestra'])->name('maestra.score');
     Route::post('/especiales/{type}/resolve',[AdminController::class, 'resolveSpecialEvent'])->name('especiales.resolve');
 });
