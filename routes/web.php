@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => redirect()->route('leaderboard'));
 
+// ── Rutas PÚBLICAS (sin login — para compartir en WhatsApp) ──
+Route::get('/resultados',              [\App\Http\Controllers\ResultsController::class, 'public'])->name('results.public');
+Route::get('/resultados/jornada',      [\App\Http\Controllers\ResultsController::class, 'matchday'])->name('results.matchday');
+Route::get('/resultados/jugador/{user}',[\App\Http\Controllers\ResultsController::class, 'player'])->name('results.player');
+
 Route::middleware(['auth'])->group(function () {
 
     // Quiniela Maestra

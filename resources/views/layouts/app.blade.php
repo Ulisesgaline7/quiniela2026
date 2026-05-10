@@ -548,6 +548,7 @@ input:focus{border-color:var(--gold)}
     <a href="{{ route('quiniela.partidos') }}"   class="nav-link {{ request()->routeIs('quiniela.partidos*') ? 'active':'' }}">⚽ Partidos</a>
     <a href="{{ route('quiniela.especiales') }}" class="nav-link {{ request()->routeIs('quiniela.especiales*') ? 'active':'' }}">🎯 Extras</a>
     <a href="{{ route('leaderboard') }}"         class="nav-link {{ request()->routeIs('leaderboard') ? 'active':'' }}">🏅 Tabla</a>
+    <a href="{{ route('results.public') }}"      class="nav-link {{ request()->routeIs('results.*') ? 'active':'' }}">📤 Compartir</a>
     @if(auth()->user()->is_admin)
     <a href="{{ route('admin.index') }}" class="nav-link admin">⚙ Admin</a>
     @endif
@@ -583,6 +584,10 @@ input:focus{border-color:var(--gold)}
   <a href="{{ route('leaderboard') }}" class="bottom-nav-item {{ request()->routeIs('leaderboard') ? 'active':'' }}">
     <span class="bottom-nav-icon">🏅</span>
     <span>Tabla</span>
+  </a>
+  <a href="{{ route('results.public') }}" class="bottom-nav-item {{ request()->routeIs('results.*') ? 'active':'' }}">
+    <span class="bottom-nav-icon">📤</span>
+    <span>Compartir</span>
   </a>
   @if(auth()->user()->is_admin)
   <a href="{{ route('admin.index') }}" class="bottom-nav-item admin-item {{ request()->routeIs('admin.*') ? 'active':'' }}">
