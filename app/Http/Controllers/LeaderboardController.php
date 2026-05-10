@@ -18,12 +18,17 @@ class LeaderboardController extends Controller
                 DB::raw('(SELECT user_id, SUM(total_points) as match_pts FROM match_predictions GROUP BY user_id) mp'),
                 'mp.user_id', '=', 'users.id'
             )
+            ->leftJoin(
+                DB::raw('(SELECT user_id, SUM(points_earned) as special_pts FROM special_event_picks GROUP BY user_id) sep'),
+                'sep.user_id', '=', 'users.id'
+            )
             ->selectRaw('
                 users.id,
                 users.name,
-                COALESCE(quinielas.total_points, 0)  AS maestra_pts,
-                COALESCE(mp.match_pts, 0)             AS partido_pts,
-                COALESCE(quinielas.total_points, 0) + COALESCE(mp.match_pts, 0) AS grand_total
+                COALESCE(quinielas.total_points, 0)   AS maestra_pts,
+                COALESCE(mp.match_pts, 0)              AS partido_pts,
+                COALESCE(sep.special_pts, 0)           AS special_pts,
+                COALESCE(quinielas.total_points, 0) + COALESCE(mp.match_pts, 0) + COALESCE(sep.special_pts, 0) AS grand_total
             ')
             ->orderByDesc('grand_total')
             ->get();

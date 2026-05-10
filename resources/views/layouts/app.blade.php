@@ -447,6 +447,7 @@ input:focus{border-color:var(--gold)}
   <div class="nav-links">
     <a href="{{ route('quiniela.maestra') }}"  class="nav-link {{ request()->routeIs('quiniela.maestra*') ? 'active':'' }}">🏆 Maestra</a>
     <a href="{{ route('quiniela.partidos') }}" class="nav-link {{ request()->routeIs('quiniela.partidos*') ? 'active':'' }}">⚽ Partidos</a>
+    <a href="{{ route('quiniela.especiales') }}" class="nav-link {{ request()->routeIs('quiniela.especiales*') ? 'active':'' }}">🎯 Extras</a>
     <a href="{{ route('leaderboard') }}"       class="nav-link {{ request()->routeIs('leaderboard') ? 'active':'' }}">🏅 Tabla</a>
     @if(auth()->user()->is_admin)
     <a href="{{ route('admin.index') }}" class="nav-link admin">⚙ Admin</a>

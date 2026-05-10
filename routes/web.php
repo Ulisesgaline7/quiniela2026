@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\MatchPredictionController;
 use App\Http\Controllers\QuinielaMaestraController;
+use App\Http\Controllers\SpecialEventsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => redirect()->route('leaderboard'));
@@ -21,6 +22,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Leaderboard
     Route::get('/tabla', [LeaderboardController::class, 'index'])->name('leaderboard');
+
+    // Eventos especiales
+    Route::get('/quiniela/especiales',  [SpecialEventsController::class, 'index'])->name('quiniela.especiales');
+    Route::post('/quiniela/especiales', [SpecialEventsController::class, 'store'])->name('quiniela.especiales.store');
 });
 
 // Admin
@@ -30,6 +35,7 @@ Route::middleware(['auth','admin'])->prefix('admin')->name('admin.')->group(func
     Route::delete('/users/{user}',           [AdminController::class, 'deleteUser'])->name('users.delete');
     Route::post('/match/{match}/score',      [AdminController::class, 'scoreMatch'])->name('match.score');
     Route::post('/maestra/score',            [AdminController::class, 'scoreMaestra'])->name('maestra.score');
+    Route::post('/especiales/{type}/resolve',[AdminController::class, 'resolveSpecialEvent'])->name('especiales.resolve');
 });
 
 require __DIR__ . '/auth.php';

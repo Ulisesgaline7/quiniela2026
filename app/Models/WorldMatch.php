@@ -13,16 +13,20 @@ class WorldMatch extends Model
     protected $fillable = [
         'home_team_id', 'away_team_id', 'phase', 'group_name', 'matchday',
         'kickoff_at', 'closes_at', 'is_open', 'home_score', 'away_score',
-        'had_extra_time', 'had_penalties', 'had_red_card', 'first_scorer_team_id',
+        'had_extra_time', 'had_penalties', 'had_red_card',
+        'had_penalty_in_game', 'had_stoppage_goal',
+        'first_scorer_team_id', 'venue', 'city', 'status', 'api_match_id',
     ];
 
     protected $casts = [
-        'kickoff_at'     => 'datetime',
-        'closes_at'      => 'datetime',
-        'is_open'        => 'boolean',
-        'had_extra_time' => 'boolean',
-        'had_penalties'  => 'boolean',
-        'had_red_card'   => 'boolean',
+        'kickoff_at'          => 'datetime',
+        'closes_at'           => 'datetime',
+        'is_open'             => 'boolean',
+        'had_extra_time'      => 'boolean',
+        'had_penalties'       => 'boolean',
+        'had_red_card'        => 'boolean',
+        'had_penalty_in_game' => 'boolean',
+        'had_stoppage_goal'   => 'boolean',
     ];
 
     public function homeTeam(): BelongsTo

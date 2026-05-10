@@ -22,6 +22,7 @@
           <th>Jugador</th>
           <th style="text-align:right">Maestra</th>
           <th style="text-align:right">Partidos</th>
+          <th style="text-align:right;color:var(--coral)">Extras</th>
           <th style="text-align:right;color:var(--gold)">Total</th>
         </tr>
       </thead>
@@ -51,10 +52,11 @@
           </td>
           <td style="text-align:right;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--muted)">{{ $row->maestra_pts }}</td>
           <td style="text-align:right;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--muted)">{{ $row->partido_pts }}</td>
+          <td style="text-align:right;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--coral)">{{ $row->special_pts ?? 0 }}</td>
           <td class="lb-pts">{{ $row->grand_total }}</td>
         </tr>
         @empty
-        <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px">Nadie ha enviado su quiniela todavía. ¡Sé el primero!</td></tr>
+        <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;letter-spacing:1px">Nadie ha enviado su quiniela todavía. ¡Sé el primero!</td></tr>
         @endforelse
       </tbody>
     </table>

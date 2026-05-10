@@ -236,4 +236,50 @@ class AdminController extends Controller
         if ($home < $away) return 'away';
         return 'draw';
     }
+
+    // ── Resolve Special Event ─────────────────────────────────────────
+    public function resolveSpecialEvent(Request $request, string $type)
+    {
+        $definitions = collect(\App\Models\SpecialEvent::allDefinitions())->keyBy('type');
+        if (!isset($definitions[$type])) {
+            return back()->with('error', 'Evento no encontrado.');
+        }
+
+        $def = $definitions[$type];
+
+        // Create or update the resolved event
+        $event = \App\Models\SpecialEvent::updateOrCreate(
+            ['type' => $type],
+            [
+                'label'       => $def['label'],
+                'points'      => $def['points'],
+                'team_id'     => $request->team_id ?: null,
+                'player_name' => $request->player_name ?: null,
+                'resolved'    => true,
+            ]
+        );
+
+        // Score all picks for this event
+        \App\Models\SpecialEventPick::where('event_type', $type)->get()
+            ->each(function ($pick) use ($event, $def) {
+                $correct = false;
+
+                if ($def['pick_type'] === 'boolean') {
+                    // Any pick = correct (they predicted it would happen)
+                    $correct = !empty($pick->player_name);
+                } elseif ($def['pick_type'] === 'team' && $event->team_id) {
+                    $correct = $pick->team_id == $event->team_id;
+                } elseif ($def['pick_type'] === 'player' && $event->player_name) {
+                    $correct = strtolower(trim($pick->player_name)) === strtolower(trim($event->player_name));
+                } elseif ($def['pick_type'] === 'match' && $event->team_id) {
+                    $correct = $pick->team_id == $event->team_id;
+                }
+
+                $pick->correct       = $correct;
+                $pick->points_earned = $correct ? $def['points'] : 0;
+                $pick->save();
+            });
+
+        return back()->with('success', "Evento '{$def['label']}' resuelto ✓");
+    }
 }
