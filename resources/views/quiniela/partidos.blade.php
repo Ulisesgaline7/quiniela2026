@@ -48,7 +48,7 @@
             {{ $match->group_name ? 'GRP '.$match->group_name.' · J'.$match->matchday : $match->getPhaseLabel() }}
           </div>
         @endif
-        <div class="match-meta" style="margin-top:4px">{{ $match->kickoff_at->format('d M · H:i') }}</div>
+        <div class="match-meta" style="margin-top:4px">{{ $match->kickoff_at->timezone('America/Tegucigalpa')->format('d M · H:i') }} HN</div>
         @if($match->city)
         <div class="match-meta">📍 {{ $match->city }}</div>
         @endif
@@ -72,6 +72,15 @@
 
     @if(!$closed && $match->is_open && !$match->isFinished())
     {{-- QUICK PREDICTION FORM --}}
+    @php $alreadyScored = $pred && $pred->scored; @endphp
+    @if($alreadyScored)
+    {{-- SCORED — HARD LOCKED --}}
+    <div style="background:rgba(204,0,0,.06);border:1px solid rgba(204,0,0,.2);border-radius:6px;padding:14px;text-align:center;margin-bottom:12px">
+      <div style="font-size:13px;color:#ff6666;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;margin-bottom:4px">⛔ PRONÓSTICO PUNTUADO — NO EDITABLE</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:28px;color:var(--white)">{{ $pred->home_score }} – {{ $pred->away_score }}</div>
+      <div style="font-size:12px;color:var(--teal);margin-top:4px;font-family:'Barlow Condensed',sans-serif">+{{ $pred->total_points }} pts ganados</div>
+    </div>
+    @else
     <form method="POST" action="{{ route('quiniela.partidos.store',$match) }}" id="form-{{ $match->id }}">
     @csrf
     <div class="divider">Pronóstico Rápido</div>
@@ -153,6 +162,7 @@
       <button type="submit" class="btn btn-teal btn-sm">{{ $pred ? '↻ Actualizar':'✓ Confirmar' }} Pronóstico</button>
     </div>
     </form>
+    @endif {{-- end alreadyScored --}}
 
     @elseif($match->isFinished() && $pred)
     {{-- RESULTADO PUNTUADO --}}

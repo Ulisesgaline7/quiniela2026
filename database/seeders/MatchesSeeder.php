@@ -103,7 +103,7 @@ class MatchesSeeder extends Seeder
         ];
 
         foreach ($matches as $m) {
-            $kickoff = Carbon::parse($m['kickoff']);
+            $kickoff = Carbon::parse($m['kickoff'], 'America/Tegucigalpa');
             WorldMatch::updateOrCreate(
                 [
                     'home_team_id' => $t($m['home']),
@@ -114,7 +114,7 @@ class MatchesSeeder extends Seeder
                     'group_name' => $m['group'],
                     'matchday'   => $m['day'],
                     'kickoff_at' => $kickoff,
-                    'closes_at'  => $kickoff->copy()->subMinutes(5),  // 5 min before kickoff
+                    'closes_at'  => $kickoff->copy()->subHour(),  // 1 hour before kickoff
                     'venue'      => $m['venue'],
                     'city'       => $m['city'],
                     'is_open'    => true,

@@ -12,8 +12,9 @@ use Illuminate\Support\Facades\DB;
 
 class QuinielaMaestraController extends Controller
 {
-    // Tournament starts June 11 2026 at 15:00 UTC — maestra closes 1 hour before
-    const MAESTRA_CLOSES = '2026-06-11 14:00:00';
+    // Tournament starts June 11 2026 at 09:00 Tegucigalpa (MEX vs RSA 15:00 CDMX = 09:00 HN)
+    // Maestra closes 1 day before: June 10 23:59 Tegucigalpa
+    const MAESTRA_CLOSES = '2026-06-10 23:59:59';
 
     public function index()
     {
@@ -52,8 +53,9 @@ class QuinielaMaestraController extends Controller
         $user     = Auth::user();
         $existing = Quiniela::where('user_id', $user->id)->first();
 
+        // HARD LOCK: once submitted, never editable
         if ($existing && $existing->submitted) {
-            return back()->with('error', 'Ya enviaste tu Quiniela Maestra. No se puede modificar.');
+            return back()->with('error', '⛔ Ya enviaste tu Quiniela Maestra. No se puede modificar bajo ninguna circunstancia.');
         }
 
         $validated = $request->validate([

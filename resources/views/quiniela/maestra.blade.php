@@ -8,7 +8,7 @@
     <span title="Zayu">🐆</span>
     <span title="Clutch">🦅</span>
   </div>
-  <div class="hero-eyebrow">Formulario Oficial · Una sola vez · Cierra 11 Jun 14:00 UTC</div>
+  <div class="hero-eyebrow">Formulario Oficial · Una sola vez · Cierra 10 Jun 23:59 HN</div>
   <h1 class="hero-title"><span class="outline">QUINIELA</span><br><span class="fill">MAESTRA</span></h1>
   <p class="hero-sub">Completa tus predicciones antes del pitazo inaugural. Los puntos se revelan progresivamente — nadie puede relajarse hasta la final en MetLife.</p>
 </div>
@@ -528,7 +528,7 @@
   <div class="closed-badge">🔒 Quiniela Maestra Cerrada</div>
   @else
   <button type="submit" class="btn btn-gold">🏆 Enviar Quiniela Maestra</button>
-  <p class="submit-note">⚠️ Solo se puede enviar una vez · Cierra el 10 de junio a las 23:59</p>
+  <p class="submit-note">⚠️ Solo se puede enviar una vez · No editable después de enviar · Cierra el 10 de junio a las 23:59 HN</p>
   @endif
 </div>
 
