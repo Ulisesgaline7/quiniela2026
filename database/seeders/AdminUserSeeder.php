@@ -10,10 +10,10 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         DB::table('users')->updateOrInsert(
-            ['username' => 'admin'],
+            ['username' => 'ugalinez'],
             [
-                'name'       => 'Administrador',
-                'username'   => 'admin',
+                'name'       => 'Ulises Galinez',
+                'username'   => 'ugalinez',
                 'is_admin'   => true,
                 'created_at' => now(),
                 'updated_at' => now(),

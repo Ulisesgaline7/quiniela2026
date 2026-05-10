@@ -3,10 +3,14 @@
 @section('content')
 
 <div class="page-hero">
-  <div class="hero-mascots">🫎 🐆 🦅</div>
-  <div class="hero-eyebrow">Formulario Oficial · Una sola vez · Cierra 10 Jun</div>
+  <div class="mascots-row">
+    <span title="Maple">🫎</span>
+    <span title="Zayu">🐆</span>
+    <span title="Clutch">🦅</span>
+  </div>
+  <div class="hero-eyebrow">Formulario Oficial · Una sola vez · Cierra 11 Jun 14:00 UTC</div>
   <h1 class="hero-title"><span class="outline">QUINIELA</span><br><span class="fill">MAESTRA</span></h1>
-  <p class="hero-sub">Completa tus predicciones antes del 10 de junio. Los puntos se revelan progresivamente — nadie puede relajarse hasta el pitazo final en MetLife.</p>
+  <p class="hero-sub">Completa tus predicciones antes del pitazo inaugural. Los puntos se revelan progresivamente — nadie puede relajarse hasta la final en MetLife.</p>
 </div>
 
 @if($isClosed && (!$quiniela || !$quiniela->submitted))

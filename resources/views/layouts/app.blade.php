@@ -7,67 +7,135 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 @vite(['resources/css/app.css','resources/js/app.js'])
 <style>
+/* ═══════════════════════════════════════════════════
+   FIFA WORLD CUP 2026 — Official Color System
+   Palette from official brand guidelines
+   ═══════════════════════════════════════════════════ */
 :root{
-  --black:#0A0A0A; --white:#F2EDE4; --gold:#C9A84C; --gold2:#E8C96A;
-  --coral:#FF4D3D; --teal:#00B8A9; --purple:#6B3FA0; --lime:#AADD00;
-  --card:#141414; --card2:#1C1C1C; --border:rgba(201,168,76,.18);
-  --muted:#5A5A5A; --text:#F2EDE4; --red:#E03030;
+  /* Core */
+  --black:#000000; --white:#FFFFFF; --gold:#C9A84C; --gold2:#E8C96A;
+  /* Official FIFA 2026 palette */
+  --f-red:    #CC0000;  --f-dred:   #7A0000;
+  --f-purple: #6600CC;  --f-dpurp:  #330066;
+  --f-navy:   #001A66;  --f-dnavy:  #000D33;
+  --f-green:  #006633;  --f-dgreen: #003319;
+  --f-orange: #FF4400;  --f-lilac:  #9966CC;
+  --f-blue:   #0044CC;  --f-lime:   #00CC44;
+  --f-coral:  #FF6633;  --f-mauve:  #996699;
+  --f-sky:    #0099CC;  --f-yellow: #CCCC00;
+  --f-salmon: #FF9988;  --f-pink:   #CC3366;
+  --f-teal:   #00CCAA;  --f-bright: #CCFF00;
+  /* App UI */
+  --bg:    #000000; --card:#0F0F0F; --card2:#181818;
+  --border:rgba(201,168,76,.2); --muted:#5A5A5A; --text:#F5F0E8;
+  /* Aliases for existing code */
+  --coral:var(--f-coral); --teal:var(--f-teal); --purple:var(--f-purple);
+  --lime:var(--f-lime); --red:var(--f-red);
 }
-*{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth;font-size:16px}
 body{
-  background:var(--black);color:var(--text);
-  font-family:'Barlow',sans-serif;min-height:100vh;
+  background:var(--bg);color:var(--text);
+  font-family:'Barlow',sans-serif;min-height:100vh;min-height:100dvh;
   background-image:
-    radial-gradient(ellipse 120% 40% at 50% 0%,rgba(201,168,76,.10) 0%,transparent 60%),
-    radial-gradient(ellipse 60% 30% at 100% 100%,rgba(0,184,169,.06) 0%,transparent 50%),
-    radial-gradient(ellipse 60% 30% at 0% 80%,rgba(107,63,160,.06) 0%,transparent 50%);
+    radial-gradient(ellipse 150% 50% at 50% -5%,rgba(201,168,76,.12) 0%,transparent 55%),
+    radial-gradient(ellipse 80% 40% at 100% 100%,rgba(0,204,170,.05) 0%,transparent 50%),
+    radial-gradient(ellipse 80% 40% at 0% 80%,rgba(102,0,204,.05) 0%,transparent 50%);
+  /* Subtle grid pattern like FIFA poster */
+  background-size:100% 100%,100% 100%,100% 100%;
 }
-/* ── NAV ── */
+/* ── TOP NAV (mobile header) ── */
 .nav{
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 28px;height:60px;position:sticky;top:0;z-index:200;
-  background:rgba(10,10,10,.96);backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--border);
+  padding:0 16px;height:56px;position:sticky;top:0;z-index:200;
+  background:rgba(0,0,0,.97);backdrop-filter:blur(20px);
+  border-bottom:2px solid var(--gold);
 }
-.nav-brand{display:flex;align-items:center;gap:0;text-decoration:none}
-.nav-brand-fifa{
+.nav-brand{display:flex;align-items:center;gap:8px;text-decoration:none}
+/* FIFA 26 logo recreation */
+.nav-logo-26{
+  font-family:'Barlow Condensed',sans-serif;font-weight:900;
+  font-size:28px;line-height:1;color:var(--white);letter-spacing:-2px;
+  position:relative;
+}
+.nav-logo-26 .n2{color:var(--white)}
+.nav-logo-26 .n6{color:var(--white)}
+.nav-logo-trophy{font-size:20px;margin:0 -2px}
+.nav-brand-text{
+  font-family:'Barlow Condensed',sans-serif;font-weight:800;
+  font-size:13px;letter-spacing:2px;color:var(--white);
+  text-transform:uppercase;line-height:1.1;
+}
+.nav-brand-text span{color:var(--gold);display:block;font-size:10px;letter-spacing:3px}
+.nav-right{display:flex;align-items:center;gap:8px}
+.nav-user-chip{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);
+  border-radius:20px;padding:4px 10px 4px 6px;
+}
+.nav-user-avatar{
+  width:24px;height:24px;border-radius:50%;
   background:var(--gold);color:var(--black);
   font-family:'Barlow Condensed',sans-serif;font-weight:900;
-  font-size:13px;letter-spacing:3px;padding:5px 10px 4px;
-  clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);
+  font-size:12px;display:flex;align-items:center;justify-content:center;
 }
-.nav-brand-wc{
-  font-family:'Barlow Condensed',sans-serif;font-weight:800;
-  font-size:16px;letter-spacing:2px;color:var(--white);
-  padding-left:10px;text-transform:uppercase;
-}
-.nav-brand-wc em{color:var(--coral);font-style:normal}
-.nav-links{display:flex;gap:0;align-items:center}
-.nav-link{
-  color:var(--muted);font-family:'Barlow Condensed',sans-serif;
-  font-weight:600;font-size:13px;letter-spacing:2px;
-  padding:0 14px;height:60px;display:flex;align-items:center;
-  text-decoration:none;text-transform:uppercase;
-  border-bottom:3px solid transparent;transition:all .2s;
-}
-.nav-link:hover{color:var(--white);border-bottom-color:rgba(201,168,76,.4)}
-.nav-link.active{color:var(--gold);border-bottom-color:var(--gold)}
-.nav-link.admin{color:var(--coral)}
-.nav-right{display:flex;align-items:center;gap:12px}
 .nav-user-name{
   font-family:'Barlow Condensed',sans-serif;font-weight:700;
-  font-size:13px;letter-spacing:1px;color:var(--white)
+  font-size:12px;letter-spacing:1px;color:var(--white);
 }
 .nav-logout{
-  background:none;border:1px solid rgba(201,168,76,.25);
-  color:var(--muted);cursor:pointer;font-family:'Barlow Condensed',sans-serif;
-  font-size:11px;letter-spacing:2px;padding:5px 12px;
-  text-transform:uppercase;transition:all .2s;
+  background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:18px;padding:4px;line-height:1;
 }
-.nav-logout:hover{border-color:var(--coral);color:var(--coral)}
+/* Desktop nav links (hidden on mobile) */
+.nav-links{display:none}
+@media(min-width:768px){
+  .nav{padding:0 24px;height:60px}
+  .nav-links{display:flex;gap:0;align-items:center}
+  .nav-link{
+    color:var(--muted);font-family:'Barlow Condensed',sans-serif;
+    font-weight:600;font-size:13px;letter-spacing:2px;
+    padding:0 14px;height:60px;display:flex;align-items:center;
+    text-decoration:none;text-transform:uppercase;
+    border-bottom:3px solid transparent;transition:all .2s;
+  }
+  .nav-link:hover{color:var(--white);border-bottom-color:rgba(201,168,76,.4)}
+  .nav-link.active{color:var(--gold);border-bottom-color:var(--gold)}
+  .nav-link.admin{color:var(--f-coral)}
+}
+
+/* ── BOTTOM NAV (mobile only) ── */
+.bottom-nav{
+  display:flex;position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:rgba(0,0,0,.97);backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.bottom-nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:8px 4px 6px;gap:3px;
+  text-decoration:none;color:var(--muted);
+  font-family:'Barlow Condensed',sans-serif;font-weight:600;
+  font-size:9px;letter-spacing:1px;text-transform:uppercase;
+  transition:color .2s;border-top:2px solid transparent;
+  -webkit-tap-highlight-color:transparent;
+}
+.bottom-nav-item.active{color:var(--gold);border-top-color:var(--gold)}
+.bottom-nav-item:hover{color:var(--white)}
+.bottom-nav-item.admin-item{color:var(--f-coral)}
+.bottom-nav-icon{font-size:20px;line-height:1}
+@media(min-width:768px){
+  .bottom-nav{display:none}
+}
+
 /* ── CONTAINER ── */
-.container{max-width:1000px;margin:0 auto;padding:36px 20px 100px}
+.container{
+  max-width:1000px;margin:0 auto;
+  padding:20px 14px 90px; /* bottom padding for bottom nav */
+}
+@media(min-width:768px){
+  .container{padding:36px 20px 60px}
+}
 /* ── ALERTS ── */
 .alert{
   padding:12px 16px;margin-bottom:20px;
@@ -407,59 +475,121 @@ input:focus{border-color:var(--gold)}
 /* ── CLOSED BADGE ── */
 .closed-badge{
   display:inline-flex;align-items:center;gap:5px;
-  background:rgba(255,77,61,.1);border:1px solid rgba(255,77,61,.25);
-  color:var(--coral);font-family:'Barlow Condensed',sans-serif;
+  background:rgba(204,0,0,.1);border:1px solid rgba(204,0,0,.3);
+  color:var(--f-red);font-family:'Barlow Condensed',sans-serif;
   font-weight:700;font-size:11px;letter-spacing:2px;padding:3px 10px;
   text-transform:uppercase;
 }
-/* ── POSTER STRIPE ── */
+/* ── POSTER STRIPE (official FIFA 2026 colors) ── */
 .poster-stripe{
-  height:5px;
-  background:linear-gradient(90deg,var(--coral) 0%,var(--gold) 33%,var(--teal) 66%,var(--lime) 100%);
-  margin-bottom:0;
+  height:4px;
+  background:linear-gradient(90deg,
+    var(--f-red) 0%,var(--f-orange) 14%,var(--f-yellow) 28%,
+    var(--f-lime) 42%,var(--f-teal) 57%,var(--f-blue) 71%,
+    var(--f-purple) 85%,var(--f-pink) 100%);
 }
 /* ── SUBMIT ── */
 .submit-area{text-align:center;margin-top:36px}
 .submit-note{font-size:12px;color:var(--muted);margin-top:10px}
-/* ── ANIMATIONS ── */
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-/* ── RESPONSIVE ── */
+/* ── MASCOTS DECORATION ── */
+.mascots-row{
+  display:flex;justify-content:center;gap:4px;
+  font-size:clamp(24px,6vw,40px);margin-bottom:8px;
+  filter:drop-shadow(0 2px 8px rgba(201,168,76,.3));
+}
+/* ── MOBILE CARDS ── */
 @media(max-width:640px){
-  .nav{padding:0 14px}
-  .container{padding:20px 14px 80px}
-  .podium,.group-grid{grid-template-columns:1fr}
-  .sel-wrap{min-width:130px}
-  .nav-right .nav-user-name{display:none}
+  .card{border-radius:6px;margin-bottom:12px}
+  .card-header{padding:11px 14px}
+  .card-body{padding:14px}
+  .podium{grid-template-columns:1fr}
+  .group-grid{grid-template-columns:1fr 1fr}
+  .sel-wrap{min-width:0;width:100%}
   .scoreboard{flex-direction:column}
   .sb-team.right{flex-direction:row}
   .compare-grid{grid-template-columns:1fr}
+  .lb-table th,.lb-table td{padding:8px 10px}
+  .lb-table th:nth-child(3),.lb-table td:nth-child(3){display:none} /* hide maestra col */
+  .input-row{flex-wrap:wrap;gap:8px}
+  .input-row .sel-wrap{min-width:0;flex:1}
+  .btn{padding:13px 28px;font-size:15px}
+  .page-hero{padding:24px 0 20px;margin-bottom:20px}
+  .hero-title{font-size:clamp(44px,12vw,72px)}
+  .result-btns{gap:5px}
+  .result-btn{padding:8px 4px;font-size:11px}
 }
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
 </style>
 @stack('styles')
 </head>
 <body>
 <div class="poster-stripe"></div>
+
+{{-- TOP NAV --}}
 <nav class="nav">
   <a href="{{ route('leaderboard') }}" class="nav-brand">
-    <div class="nav-brand-fifa">FIFA</div>
-    <div class="nav-brand-wc">WORLD CUP <em>26</em>™</div>
+    {{-- FIFA 26 logo style --}}
+    <div style="display:flex;align-items:center;gap:0;line-height:1">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:26px;color:var(--white);letter-spacing:-2px;line-height:1">
+        <span style="color:var(--white)">2</span><span style="font-size:18px">🏆</span><span style="color:var(--white)">6</span>
+      </div>
+      <div style="margin-left:8px;line-height:1.1">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;letter-spacing:3px;color:var(--gold)">FIFA</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:2px;color:var(--muted)">WORLD CUP</div>
+      </div>
+    </div>
   </a>
+
+  {{-- Desktop links --}}
   <div class="nav-links">
-    <a href="{{ route('quiniela.maestra') }}"  class="nav-link {{ request()->routeIs('quiniela.maestra*') ? 'active':'' }}">🏆 Maestra</a>
-    <a href="{{ route('quiniela.partidos') }}" class="nav-link {{ request()->routeIs('quiniela.partidos*') ? 'active':'' }}">⚽ Partidos</a>
+    <a href="{{ route('quiniela.maestra') }}"    class="nav-link {{ request()->routeIs('quiniela.maestra*') ? 'active':'' }}">🏆 Maestra</a>
+    <a href="{{ route('quiniela.partidos') }}"   class="nav-link {{ request()->routeIs('quiniela.partidos*') ? 'active':'' }}">⚽ Partidos</a>
     <a href="{{ route('quiniela.especiales') }}" class="nav-link {{ request()->routeIs('quiniela.especiales*') ? 'active':'' }}">🎯 Extras</a>
-    <a href="{{ route('leaderboard') }}"       class="nav-link {{ request()->routeIs('leaderboard') ? 'active':'' }}">🏅 Tabla</a>
+    <a href="{{ route('leaderboard') }}"         class="nav-link {{ request()->routeIs('leaderboard') ? 'active':'' }}">🏅 Tabla</a>
     @if(auth()->user()->is_admin)
     <a href="{{ route('admin.index') }}" class="nav-link admin">⚙ Admin</a>
     @endif
   </div>
+
+  {{-- User chip --}}
   <div class="nav-right">
-    <span class="nav-user-name">{{ auth()->user()->name }}</span>
+    <div class="nav-user-chip">
+      <div class="nav-user-avatar">{{ strtoupper(substr(auth()->user()->name,0,1)) }}</div>
+      <span class="nav-user-name" style="display:none" id="nav-name-desktop">{{ auth()->user()->name }}</span>
+    </div>
     <form method="POST" action="{{ route('logout') }}">
       @csrf
-      <button type="submit" class="nav-logout">Salir</button>
+      <button type="submit" class="nav-logout" title="Salir">↩</button>
     </form>
   </div>
+</nav>
+
+{{-- BOTTOM NAV (mobile) --}}
+<nav class="bottom-nav">
+  <a href="{{ route('quiniela.maestra') }}" class="bottom-nav-item {{ request()->routeIs('quiniela.maestra*') ? 'active':'' }}">
+    <span class="bottom-nav-icon">🏆</span>
+    <span>Maestra</span>
+  </a>
+  <a href="{{ route('quiniela.partidos') }}" class="bottom-nav-item {{ request()->routeIs('quiniela.partidos*') ? 'active':'' }}">
+    <span class="bottom-nav-icon">⚽</span>
+    <span>Partidos</span>
+  </a>
+  <a href="{{ route('quiniela.especiales') }}" class="bottom-nav-item {{ request()->routeIs('quiniela.especiales*') ? 'active':'' }}">
+    <span class="bottom-nav-icon">🎯</span>
+    <span>Extras</span>
+  </a>
+  <a href="{{ route('leaderboard') }}" class="bottom-nav-item {{ request()->routeIs('leaderboard') ? 'active':'' }}">
+    <span class="bottom-nav-icon">🏅</span>
+    <span>Tabla</span>
+  </a>
+  @if(auth()->user()->is_admin)
+  <a href="{{ route('admin.index') }}" class="bottom-nav-item admin-item {{ request()->routeIs('admin.*') ? 'active':'' }}">
+    <span class="bottom-nav-icon">⚙️</span>
+    <span>Admin</span>
+  </a>
+  @endif
 </nav>
 <div class="container">
   @if(session('success'))
