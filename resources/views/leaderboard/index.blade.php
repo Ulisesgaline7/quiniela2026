@@ -98,13 +98,60 @@
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px">
       <div>
         <div style="font-size:10px;color:var(--gold);font-family:'Barlow Condensed',sans-serif;letter-spacing:2px;margin-bottom:10px;text-transform:uppercase">🏆 Quiniela Maestra</div>
-        @foreach(['Campeón · 20 pts','Subcampeón · 15 pts','Tercer lugar · 10 pts','Balón de Oro · 15 pts','Bota de Oro · 15 pts','Guante de Oro · 10 pts','Mejor Joven · 10 pts','País Sorpresa · 10 pts','Clasificados Grupos · 1 pt c/u','Semifinalistas · 5 pts c/u','Finalistas · 14 pts c/u'] as $item)
+        @foreach([
+          'Campeón · 25 pts','Subcampeón · 15 pts',
+          'Semifinalistas · 8 pts c/u',
+          'Clasificados grupos · 2 pts c/u',
+          'Clasificados 16avos · 3 pts c/u',
+          'Clasificados 8vos · 5 pts c/u',
+          'Bota de Oro · 15 pts','Guante de Oro · 10 pts',
+          'Mejor Joven · 12 pts','País Sorpresa · 12 pts',
+        ] as $item)
         <div style="font-size:12px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;padding:3px 0;border-bottom:1px solid rgba(201,168,76,.04)">{{ $item }}</div>
         @endforeach
       </div>
       <div>
         <div style="font-size:10px;color:var(--teal);font-family:'Barlow Condensed',sans-serif;letter-spacing:2px;margin-bottom:10px;text-transform:uppercase">⚽ Por Partido</div>
-        @foreach(['Marcador exacto · 10 pts','Ganador correcto · 4 pts','Diferencia exacta · 6 pts','Primer goleador · +3 pts','Tarjeta roja · +2 pts','Prórroga · +4 pts','Penales · +3 pts'] as $item)
+        @foreach([
+          'Marcador exacto · 12 pts',
+          'Diferencia exacta · 7 pts',
+          'Ganador correcto · 4 pts',
+          'Primer goleador · +4 pts',
+          'Ambos equipos anotan · +2 pts',
+          'Más de 3 goles · +2 pts',
+          'Tarjeta roja · +2 pts',
+          'Penal en el partido · +2 pts',
+          'Gol en tiempo agregado · +3 pts',
+          'Prórroga · +5 pts',
+          'Penales · +4 pts',
+        ] as $item)
+        <div style="font-size:12px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;padding:3px 0;border-bottom:1px solid rgba(201,168,76,.04)">{{ $item }}</div>
+        @endforeach
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--coral);font-family:'Barlow Condensed',sans-serif;letter-spacing:2px;margin-bottom:10px;text-transform:uppercase">🎯 Eventos Especiales</div>
+        @foreach([
+          'Primer eliminado · 10 pts',
+          'Primera clasificada · 8 pts',
+          'Primer 0-0 · 6 pts',
+          'Primer hat-trick · 8 pts',
+          'Primer autogol · 5 pts',
+          'Más goleador en grupos · 8 pts',
+          'Menos goleado · 8 pts',
+          'Partido con más goles · 10 pts',
+          'Selección decepción · 10 pts',
+          'Selección revelación · 10 pts',
+          'Jugador revelación · 8 pts',
+        ] as $item)
+        <div style="font-size:12px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;padding:3px 0;border-bottom:1px solid rgba(201,168,76,.04)">{{ $item }}</div>
+        @endforeach
+        <div style="font-size:10px;color:var(--lime);font-family:'Barlow Condensed',sans-serif;letter-spacing:2px;margin-top:12px;margin-bottom:8px;text-transform:uppercase">💎 Bonus</div>
+        @foreach([
+          'Campeón + Goleador · +10 pts',
+          '3 exactos seguidos · +15 pts',
+          'Jornada perfecta · +20 pts',
+          'Final completa · +25 pts',
+        ] as $item)
         <div style="font-size:12px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px;padding:3px 0;border-bottom:1px solid rgba(201,168,76,.04)">{{ $item }}</div>
         @endforeach
       </div>

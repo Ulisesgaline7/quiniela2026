@@ -114,7 +114,7 @@ class MatchesSeeder extends Seeder
                     'group_name' => $m['group'],
                     'matchday'   => $m['day'],
                     'kickoff_at' => $kickoff,
-                    'closes_at'  => $kickoff->copy()->subHour(),
+                    'closes_at'  => $kickoff->copy()->subMinutes(5),  // 5 min before kickoff
                     'venue'      => $m['venue'],
                     'city'       => $m['city'],
                     'is_open'    => true,

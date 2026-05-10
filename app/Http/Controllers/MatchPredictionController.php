@@ -90,7 +90,7 @@ class MatchPredictionController extends Controller
     public function store(Request $request, WorldMatch $match)
     {
         $now = now();
-        $isClosed = $match->closes_at && $now->gte($match->closes_at);
+        $isClosed = $match->closes_at && $now->gte($match->closes_at);  // 5 min before kickoff
 
         if ($isClosed || !$match->is_open) {
             return back()->with('error', 'Este partido ya cerró para pronósticos (1 hora antes del pitazo).');

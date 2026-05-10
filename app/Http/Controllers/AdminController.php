@@ -83,29 +83,66 @@ class AdminController extends Controller
 
     private function scorePredictions(WorldMatch $match): void
     {
-        $realResult = $this->calcResult($match->home_score, $match->away_score);
-        $realDiff   = abs($match->home_score - $match->away_score);
+        $realResult   = $this->calcResult($match->home_score, $match->away_score);
+        $realDiff     = abs($match->home_score - $match->away_score);
+        $realTotal    = $match->home_score + $match->away_score;
+        $bothScored   = $match->home_score > 0 && $match->away_score > 0;
+        $over3goals   = $realTotal > 3;
 
         MatchPrediction::where('match_id', $match->id)
             ->where('scored', false)
             ->get()
-            ->each(function ($pred) use ($match, $realResult, $realDiff) {
+            ->each(function ($pred) use ($match, $realResult, $realDiff, $bothScored, $over3goals) {
                 $pts      = 0;
                 $predDiff = abs($pred->home_score - $pred->away_score);
                 $predRes  = $this->calcResult($pred->home_score, $pred->away_score);
 
+                // Marcador exacto → 12 pts
                 if ($pred->home_score == $match->home_score && $pred->away_score == $match->away_score) {
-                    $pred->pts_exact = 10; $pts += 10;
+                    $pred->pts_exact = 12; $pts += 12;
                 } else {
-                    if ($predRes === $realResult)  { $pred->pts_result = 4; $pts += 4; }
-                    if ($predDiff === $realDiff)   { $pred->pts_diff   = 6; $pts += 6; }
+                    // Diferencia exacta → 7 pts
+                    if ($predDiff === $realDiff && $predRes === $realResult) {
+                        $pred->pts_diff = 7; $pts += 7;
+                    }
+                    // Ganador correcto → 4 pts
+                    if ($predRes === $realResult) {
+                        $pred->pts_result = 4; $pts += 4;
+                    }
                 }
+
+                // Primer goleador (equipo) → +4 pts
                 if ($match->first_scorer_team_id && $pred->first_scorer_team_id == $match->first_scorer_team_id) {
-                    $pred->pts_first_scorer = 3; $pts += 3;
+                    $pred->pts_first_scorer = 4; $pts += 4;
                 }
-                if ($pred->predict_red_card   && $match->had_red_card)   { $pred->pts_red_card   = 2; $pts += 2; }
-                if ($pred->predict_extra_time && $match->had_extra_time) { $pred->pts_extra_time = 4; $pts += 4; }
-                if ($pred->predict_penalties  && $match->had_penalties)  { $pred->pts_penalties  = 3; $pts += 3; }
+                // Ambos equipos anotan → +2 pts
+                if ($pred->predict_both_score && $bothScored) {
+                    $pts += 2;
+                }
+                // Más de 3 goles → +2 pts
+                if ($pred->predict_over3 && $over3goals) {
+                    $pts += 2;
+                }
+                // Tarjeta roja → +2 pts
+                if ($pred->predict_red_card && $match->had_red_card) {
+                    $pred->pts_red_card = 2; $pts += 2;
+                }
+                // Penal en el partido → +2 pts
+                if ($pred->predict_penalty_in_game && $match->had_penalty_in_game) {
+                    $pts += 2;
+                }
+                // Gol en tiempo agregado → +3 pts
+                if ($pred->predict_stoppage_goal && $match->had_stoppage_goal) {
+                    $pts += 3;
+                }
+                // Prórroga → +5 pts
+                if ($pred->predict_extra_time && $match->had_extra_time) {
+                    $pred->pts_extra_time = 5; $pts += 5;
+                }
+                // Penales → +4 pts
+                if ($pred->predict_penalties && $match->had_penalties) {
+                    $pred->pts_penalties = 4; $pts += 4;
+                }
 
                 $pred->total_points = $pts;
                 $pred->scored       = true;
@@ -137,26 +174,24 @@ class AdminController extends Controller
             ->each(function ($q) use ($validated) {
                 $pts = 0;
 
-                // Podio
+                // Podio — nuevos puntos
                 $ptsPodio = 0;
-                if ($q->champion_id   == $validated['champion_id'])   $ptsPodio += 20;
-                if ($q->runner_up_id  == $validated['runner_up_id'])  $ptsPodio += 15;
-                if ($q->third_place_id == $validated['third_place_id']) $ptsPodio += 10;
+                if ($q->champion_id   == $validated['champion_id'])    $ptsPodio += 25;
+                if ($q->runner_up_id  == $validated['runner_up_id'])   $ptsPodio += 15;
                 $q->points_podio = $ptsPodio; $pts += $ptsPodio;
 
-                // Awards
+                // Awards — nuevos puntos
                 $ptsAwards = 0;
-                if ($q->golden_ball  === $validated['golden_ball'])  $ptsAwards += 15;
-                if ($q->golden_boot  === $validated['golden_boot'])  $ptsAwards += 15;
-                if ($q->golden_glove === $validated['golden_glove']) $ptsAwards += 10;
-                if ($q->best_young   === $validated['best_young'])   $ptsAwards += 10;
-                if ($validated['surprise_team_id'] && $q->surprise_team_id == $validated['surprise_team_id']) $ptsAwards += 10;
+                if ($q->golden_ball  === $validated['golden_ball'])   $ptsAwards += 15;
+                if ($q->golden_glove === $validated['golden_glove'])  $ptsAwards += 10;
+                if ($q->best_young   === $validated['best_young'])    $ptsAwards += 12;
+                if ($validated['surprise_team_id'] && $q->surprise_team_id == $validated['surprise_team_id']) $ptsAwards += 12;
                 $q->points_awards = $ptsAwards; $pts += $ptsAwards;
 
                 // Stats
                 $ptsStats = 0;
-                if ($q->top_scorer_team_id == $validated['top_scorer_team_id']) $ptsStats += 10;
-                if ($q->best_defense_id    == $validated['best_defense_id'])    $ptsStats += 10;
+                if ($q->top_scorer_team_id == $validated['top_scorer_team_id']) $ptsStats += 8;
+                if ($q->best_defense_id    == $validated['best_defense_id'])    $ptsStats += 8;
                 $diff = abs($q->total_goals_guess - $validated['total_goals_real']);
                 $ptsStats += match(true) {
                     $diff === 0  => 15, $diff <= 3  => 12,
@@ -164,13 +199,23 @@ class AdminController extends Controller
                 };
                 $q->points_stats = $ptsStats; $pts += $ptsStats;
 
-                // Phase picks
+                // Phase picks — nuevos puntos
                 $ptsPhases = 0;
-                $phasePoints = ['round_of_32' => 1, 'semis' => 5, 'final' => 14];
-                $phaseKeys   = ['round_of_32' => 'round_of_32_teams', 'semis' => 'semis_teams', 'final' => 'final_real_teams'];
+                $phasePoints = [
+                    'round_of_32' => 3,   // clasificados a 16avos
+                    'round_of_16' => 5,   // clasificados a 8vos
+                    'quarters'    => 5,   // clasificados a 8vos (mismo nivel)
+                    'semis'       => 8,   // semifinalistas
+                    'final'       => 15,  // finalistas (subcampeón ya contado arriba)
+                ];
+                $phaseKeys = [
+                    'round_of_32' => 'round_of_32_teams',
+                    'semis'       => 'semis_teams',
+                    'final'       => 'final_real_teams',
+                ];
                 foreach ($q->phasePicks as $pick) {
                     $key = $phaseKeys[$pick->phase] ?? null;
-                    if ($key && in_array($pick->team_id, $validated[$key])) {
+                    if ($key && in_array($pick->team_id, $validated[$key] ?? [])) {
                         $pick->points_earned = $phasePoints[$pick->phase] ?? 0;
                         $pick->save();
                         $ptsPhases += $pick->points_earned;

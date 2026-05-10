@@ -113,16 +113,30 @@
     </div>
 
     {{-- BONOS --}}
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;color:var(--teal);margin-bottom:8px;text-transform:uppercase">Puntos Bono</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px">
+      @foreach([
+        ['predict_red_card','🟥 Tarjeta Roja',2],
+        ['predict_both_score','⚽⚽ Ambos Anotan',2],
+        ['predict_over3','🔥 Más de 3 Goles',2],
+        ['predict_penalty_in_game','🎯 Penal en el Partido',2],
+        ['predict_stoppage_goal','⏱ Gol en Agregado',3],
+      ] as [$field,$label,$pts])
       <div class="bonus-row" style="padding:8px;background:var(--card2);border-radius:4px;border:1px solid var(--border)">
-        <label class="toggle"><input type="checkbox" name="predict_red_card" value="1" {{ $pred?->predict_red_card?'checked':'' }}><div class="toggle-track"></div></label>
-        <div class="bonus-label"><strong>🟥 Tarjeta Roja</strong></div>
-        <span class="bonus-pts">+2</span>
+        <label class="toggle"><input type="checkbox" name="{{ $field }}" value="1" {{ $pred?->$field?'checked':'' }}><div class="toggle-track"></div></label>
+        <div class="bonus-label"><strong>{{ $label }}</strong></div>
+        <span class="bonus-pts">+{{ $pts }}</span>
       </div>
+      @endforeach
       @if(in_array($match->phase,['round_of_32','round_of_16','quarters','semis','third_place','final']))
       <div class="bonus-row" style="padding:8px;background:var(--card2);border-radius:4px;border:1px solid var(--border)">
         <label class="toggle"><input type="checkbox" name="predict_extra_time" value="1" {{ $pred?->predict_extra_time?'checked':'' }}><div class="toggle-track"></div></label>
         <div class="bonus-label"><strong>⏱ Prórroga</strong></div>
+        <span class="bonus-pts">+5</span>
+      </div>
+      <div class="bonus-row" style="padding:8px;background:var(--card2);border-radius:4px;border:1px solid var(--border)">
+        <label class="toggle"><input type="checkbox" name="predict_penalties" value="1" {{ $pred?->predict_penalties?'checked':'' }}><div class="toggle-track"></div></label>
+        <div class="bonus-label"><strong>🎯 Penales</strong></div>
         <span class="bonus-pts">+4</span>
       </div>
       @endif
