@@ -207,24 +207,103 @@
   </div>
 </div>
 
-{{-- ── SEMIFINALISTAS (de los clasificados) ── --}}
+{{-- ── PASO 3: CLASIFICADOS A OCTAVOS (16 equipos de la R32) ── --}}
 <div class="card">
   <div class="card-header">
-    <div class="card-icon ci-purple">⚡</div>
-    <div class="card-title">Semifinalistas</div>
-    <div class="card-pts">20 <small>pts</small></div>
+    <div class="card-icon ci-teal">3️⃣</div>
+    <div class="card-title">Paso 3 · Clasificados a Octavos de Final</div>
+    <div class="card-pts">80 <small>pts</small></div>
   </div>
   <div class="card-body">
-    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px">
-      4 equipos que llegan a semis. Solo puedes elegir entre los clasificados que seleccionaste arriba.
-      <span class="pill pill-purple" style="margin-left:6px">5 pts c/u</span>
-    </p>
+    <div style="background:rgba(0,184,169,.06);border:1px solid rgba(0,184,169,.2);border-radius:5px;padding:10px 14px;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted);line-height:1.8">
+        De los 32 equipos en la Ronda de 32, <strong style="color:var(--white)">16 avanzan a Octavos</strong>.
+        Elige los 16 que crees que pasan.
+        <span class="pill pill-teal" style="font-size:11px;margin-left:4px">5 pts c/u = 80 pts</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+      @php
+        $savedOctavos = $quiniela ? $quiniela->picksByPhase('round_of_16')->pluck('team_id')->toArray() : [];
+      @endphp
+      @for($i=0; $i<16; $i++)
+      <div style="background:var(--card2);border:1px solid rgba(0,184,169,.2);border-radius:4px;padding:7px">
+        <div style="font-size:9px;letter-spacing:1px;color:var(--teal);font-family:'Barlow Condensed',sans-serif;font-weight:700;margin-bottom:5px;text-transform:uppercase">8vos #{{ $i+1 }}</div>
+        <div class="sel-wrap" style="min-width:0">
+          <select name="octavos[]" class="octavos-select" onchange="updateProgress();syncOctavos()">
+            <option value="">— Equipo —</option>
+            @foreach($teams as $team)
+            <option value="{{ $team->id }}" {{ isset($savedOctavos[$i]) && $savedOctavos[$i]==$team->id ? 'selected':'' }}>
+              {{ $team->flag }} {{ $team->name }}
+            </option>
+            @endforeach
+          </select>
+        </div>
+      </div>
+      @endfor
+    </div>
+  </div>
+</div>
+
+{{-- ── PASO 4: CLASIFICADOS A CUARTOS (8 equipos) ── --}}
+<div class="card">
+  <div class="card-header">
+    <div class="card-icon ci-coral">4️⃣</div>
+    <div class="card-title">Paso 4 · Clasificados a Cuartos de Final</div>
+    <div class="card-pts">40 <small>pts</small></div>
+  </div>
+  <div class="card-body">
+    <div style="background:rgba(255,77,61,.06);border:1px solid rgba(255,77,61,.2);border-radius:5px;padding:10px 14px;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted);line-height:1.8">
+        Los <strong style="color:var(--white)">8 equipos</strong> que llegan a Cuartos de Final.
+        Solo puedes elegir entre los que pusiste en Octavos.
+        <span class="pill pill-coral" style="font-size:11px;margin-left:4px">5 pts c/u = 40 pts</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+      @php
+        $savedCuartos = $quiniela ? $quiniela->picksByPhase('quarters')->pluck('team_id')->toArray() : [];
+      @endphp
+      @for($i=0; $i<8; $i++)
+      <div style="background:var(--card2);border:1px solid rgba(255,77,61,.2);border-radius:4px;padding:7px">
+        <div style="font-size:9px;letter-spacing:1px;color:var(--coral);font-family:'Barlow Condensed',sans-serif;font-weight:700;margin-bottom:5px;text-transform:uppercase">Cuartos #{{ $i+1 }}</div>
+        <div class="sel-wrap" style="min-width:0">
+          <select name="cuartos[]" class="cuartos-select" onchange="updateProgress();syncCuartos()">
+            <option value="">— Equipo —</option>
+            @foreach($teams as $team)
+            <option value="{{ $team->id }}" {{ isset($savedCuartos[$i]) && $savedCuartos[$i]==$team->id ? 'selected':'' }}>
+              {{ $team->flag }} {{ $team->name }}
+            </option>
+            @endforeach
+          </select>
+        </div>
+      </div>
+      @endfor
+    </div>
+  </div>
+</div>
+
+{{-- ── PASO 5: SEMIFINALISTAS ── --}}
+<div class="card">
+  <div class="card-header">
+    <div class="card-icon ci-purple">5️⃣</div>
+    <div class="card-title">Paso 5 · Semifinalistas</div>
+    <div class="card-pts">32 <small>pts</small></div>
+  </div>
+  <div class="card-body">
+    <div style="background:rgba(107,63,160,.06);border:1px solid rgba(107,63,160,.2);border-radius:5px;padding:10px 14px;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted);line-height:1.8">
+        Los <strong style="color:var(--white)">4 equipos</strong> que llegan a Semifinales.
+        Solo puedes elegir entre los que pusiste en Cuartos.
+        <span class="pill pill-purple" style="font-size:11px;margin-left:4px">8 pts c/u = 32 pts</span>
+      </div>
+    </div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px" id="semis-grid">
       @for($i=0;$i<4;$i++)
       <div style="background:var(--card2);border:1px solid rgba(107,63,160,.3);border-radius:4px;padding:8px">
         <div style="font-size:9px;letter-spacing:2px;color:#a07de0;font-family:'Barlow Condensed',sans-serif;margin-bottom:6px;text-transform:uppercase">Semi {{ $i+1 }}</div>
         <div class="sel-wrap" style="min-width:0">
-          <select name="semis[]" required onchange="updateProgress()" class="semis-select">
+          <select name="semis[]" required onchange="updateProgress();syncSemis()" class="semis-select">
             <option value="">— Equipo —</option>
             @foreach($teams as $team)
             <option value="{{ $team->id }}"
@@ -240,18 +319,21 @@
   </div>
 </div>
 
-{{-- ── FINALISTAS ── --}}
+{{-- ── PASO 6: FINALISTAS ── --}}
 <div class="card">
   <div class="card-header">
-    <div class="card-icon ci-gold">🏟</div>
-    <div class="card-title">Finalistas</div>
+    <div class="card-icon ci-gold">6️⃣</div>
+    <div class="card-title">Paso 6 · Finalistas</div>
     <div class="card-pts">28 <small>pts</small></div>
   </div>
   <div class="card-body">
-    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;font-family:'Barlow Condensed',sans-serif;letter-spacing:.5px">
-      Los 2 equipos que llegan a la Final en MetLife Stadium.
-      <span class="pill pill-gold" style="margin-left:6px">14 pts c/u</span>
-    </p>
+    <div style="background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2);border-radius:5px;padding:10px 14px;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted);line-height:1.8">
+        Los <strong style="color:var(--white)">2 finalistas</strong> en MetLife Stadium.
+        Solo puedes elegir entre los que pusiste en Semis.
+        <span class="pill pill-gold" style="font-size:11px;margin-left:4px">14 pts c/u = 28 pts</span>
+      </div>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:400px;margin:0 auto" id="final-grid">
       @foreach([1,2] as $i)
       <div style="background:var(--card2);border:1px solid rgba(201,168,76,.3);border-radius:4px;padding:12px;text-align:center">
@@ -417,6 +499,8 @@
         ['🥇 1ro de grupo','2 pts × 12 = 24 pts','teal'],
         ['🥈 2do de grupo','2 pts × 12 = 24 pts','teal'],
         ['🏅 Mejor 3ro','3 pts × 8 = 24 pts','purple'],
+        ['⚽ Clasif. Octavos','5 pts × 16 = 80 pts','coral'],
+        ['⚽ Clasif. Cuartos','5 pts × 8 = 40 pts','coral'],
         ['⚡ Semifinalistas','8 pts × 4 = 32 pts','purple'],
         ['🏟 Finalistas','14 pts × 2 = 28 pts','gold'],
         ['🏆 Campeón','25 pts','gold'],
@@ -459,33 +543,34 @@ function updateProgress() {
   document.getElementById('prog-txt').textContent = filled + ' / ' + inputs.length + ' completados';
 }
 
-// When group picks (1ro/2do) change → update semis/final selects
-function syncGroupPicks() {
-  const pickedTeams = [];
+// Collect picked teams from a set of selects
+function getPickedTeams(selector) {
+  const teams = [];
   const seen = new Set();
-
-  document.querySelectorAll('[name^="group_picks"]').forEach(sel => {
+  document.querySelectorAll(selector).forEach(sel => {
     if (sel.value && !seen.has(sel.value)) {
       seen.add(sel.value);
       const opt = sel.options[sel.selectedIndex];
-      pickedTeams.push({
+      teams.push({
         id:   sel.value,
         flag: opt.dataset.flag || '',
         name: opt.dataset.name || opt.text.split('(')[0].trim()
       });
     }
   });
+  return teams.sort((a,b) => a.name.localeCompare(b.name));
+}
 
-  // Sort by name for readability
-  pickedTeams.sort((a,b) => a.name.localeCompare(b.name));
-
-  // Update semis and final selects
-  document.querySelectorAll('.semis-select, .final-select').forEach(sel => {
+// Populate a set of selects with a list of teams
+function populateSelects(selector, teams, label) {
+  document.querySelectorAll(selector).forEach(sel => {
     const current = sel.value;
-    sel.innerHTML = '<option value="">— Equipo clasificado —</option>';
-    pickedTeams.forEach(t => {
+    sel.innerHTML = `<option value="">— ${label} —</option>`;
+    teams.forEach(t => {
       const opt = document.createElement('option');
       opt.value = t.id;
+      opt.dataset.flag = t.flag;
+      opt.dataset.name = t.name;
       opt.textContent = t.flag + ' ' + t.name;
       if (t.id === current) opt.selected = true;
       sel.appendChild(opt);
@@ -493,19 +578,49 @@ function syncGroupPicks() {
   });
 }
 
-// Prevent duplicate picks in same group (1ro ≠ 2do)
-document.addEventListener('change', function(e) {
-  if (!e.target.matches('[name^="group_picks"]')) return;
-  const groupId = e.target.name.match(/\[(\d+)\]/)?.[1];
-  if (!groupId) return;
+// Cascade: grupos → octavos
+function syncGroupPicks() {
+  const teams = getPickedTeams('[name^="group_picks"]');
+  populateSelects('.octavos-select', teams, 'Equipo clasificado');
+  syncOctavos();
 
-  const selects = document.querySelectorAll(`[name^="group_picks[${groupId}]"]`);
-  if (selects.length === 2 && selects[0].value && selects[1].value && selects[0].value === selects[1].value) {
-    e.target.value = '';
-    alert('⚠️ No puedes elegir el mismo equipo para 1ro y 2do del mismo grupo.');
-  }
-});
+  // Prevent same team for 1ro and 2do in same group
+  document.querySelectorAll('[name^="group_picks"]').forEach(sel => {
+    const m = sel.name.match(/\[(\d+)\]/);
+    if (!m) return;
+    const groupId = m[1];
+    const pair = document.querySelectorAll(`[name^="group_picks[${groupId}]"]`);
+    if (pair.length === 2 && pair[0].value && pair[1].value && pair[0].value === pair[1].value) {
+      sel.value = '';
+    }
+  });
+}
 
+// Cascade: octavos → cuartos
+function syncOctavos() {
+  const teams = getPickedTeams('.octavos-select');
+  populateSelects('.cuartos-select', teams, 'Equipo de octavos');
+  syncCuartos();
+}
+
+// Cascade: cuartos → semis
+function syncCuartos() {
+  const teams = getPickedTeams('.cuartos-select');
+  populateSelects('.semis-select', teams, 'Equipo de cuartos');
+  syncSemis();
+}
+
+// Cascade: semis → final
+function syncSemis() {
+  const teams = getPickedTeams('.semis-select');
+  populateSelects('.final-select', teams, 'Equipo semifinalista');
+}
+
+// Init on page load
 updateProgress();
+// Small delay to let DOM settle before syncing
+setTimeout(() => {
+  syncGroupPicks();
+}, 100);
 </script>
 @endpush

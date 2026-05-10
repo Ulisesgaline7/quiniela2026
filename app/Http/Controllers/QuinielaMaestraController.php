@@ -68,14 +68,15 @@ class QuinielaMaestraController extends Controller
             'top_scorer_team_id'  => 'required|exists:teams,id',
             'best_defense_id'     => 'required|exists:teams,id',
             'total_goals_guess'   => 'required|integer|min:50|max:400',
-            // Group picks: 1ro y 2do de cada grupo
             'group_picks'         => 'required|array',
             'group_picks.*'       => 'array|size:2',
             'group_picks.*.*'     => 'exists:teams,id',
-            // 8 mejores terceros (grupos que clasifican su 3ro)
             'best_thirds'         => 'required|array|size:8',
             'best_thirds.*'       => 'exists:wc_groups,id',
-            // Fases avanzadas
+            'octavos'             => 'required|array|size:16',
+            'octavos.*'           => 'exists:teams,id',
+            'cuartos'             => 'required|array|size:8',
+            'cuartos.*'           => 'exists:teams,id',
             'semis'               => 'required|array|size:4',
             'semis.*'             => 'exists:teams,id',
             'final_teams'         => 'required|array|size:2',
@@ -138,7 +139,25 @@ class QuinielaMaestraController extends Controller
                 }
             }
 
-            // Semis
+            // Octavos (round_of_16) — 16 picks
+            foreach ($validated['octavos'] as $teamId) {
+                QuinielaPhasePickModel::create([
+                    'quiniela_id' => $quiniela->id,
+                    'phase'       => 'round_of_16',
+                    'team_id'     => $teamId,
+                ]);
+            }
+
+            // Cuartos — 8 picks
+            foreach ($validated['cuartos'] as $teamId) {
+                QuinielaPhasePickModel::create([
+                    'quiniela_id' => $quiniela->id,
+                    'phase'       => 'quarters',
+                    'team_id'     => $teamId,
+                ]);
+            }
+
+            // Semis — 4 picks
             foreach ($validated['semis'] as $teamId) {
                 QuinielaPhasePickModel::create([
                     'quiniela_id' => $quiniela->id,
@@ -147,7 +166,7 @@ class QuinielaMaestraController extends Controller
                 ]);
             }
 
-            // Final
+            // Final — 2 picks
             foreach ($validated['final_teams'] as $teamId) {
                 QuinielaPhasePickModel::create([
                     'quiniela_id' => $quiniela->id,

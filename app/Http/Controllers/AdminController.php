@@ -165,9 +165,11 @@ class AdminController extends Controller
             'top_scorer_team_id' => 'required|exists:teams,id',
             'best_defense_id'    => 'required|exists:teams,id',
             'total_goals_real'   => 'required|integer',
-            'round_of_32_teams'  => 'required|array',
-            'semis_teams'        => 'required|array',
-            'final_real_teams'   => 'required|array',
+            'round_of_32_teams'  => 'required|array',  // 1ros y 2dos
+            'round_of_16_teams'  => 'required|array',  // clasificados a octavos
+            'quarters_teams'     => 'required|array',  // clasificados a cuartos
+            'semis_teams'        => 'required|array',  // semifinalistas
+            'final_real_teams'   => 'required|array',  // finalistas
         ]);
 
         Quiniela::with(['phasePicks','groupPicks'])->where('submitted', true)->get()
@@ -199,17 +201,19 @@ class AdminController extends Controller
                 };
                 $q->points_stats = $ptsStats; $pts += $ptsStats;
 
-                // Phase picks — nuevos puntos
+                // Phase picks — puntos por fase
                 $ptsPhases = 0;
                 $phasePoints = [
-                    'round_of_32' => 3,   // clasificados a 16avos
-                    'round_of_16' => 5,   // clasificados a 8vos
-                    'quarters'    => 5,   // clasificados a 8vos (mismo nivel)
+                    'round_of_32' => 2,   // clasificados de grupos (1ro/2do)
+                    'round_of_16' => 5,   // clasificados a octavos
+                    'quarters'    => 5,   // clasificados a cuartos
                     'semis'       => 8,   // semifinalistas
-                    'final'       => 15,  // finalistas (subcampeón ya contado arriba)
+                    'final'       => 14,  // finalistas
                 ];
                 $phaseKeys = [
                     'round_of_32' => 'round_of_32_teams',
+                    'round_of_16' => 'round_of_16_teams',
+                    'quarters'    => 'quarters_teams',
                     'semis'       => 'semis_teams',
                     'final'       => 'final_real_teams',
                 ];
